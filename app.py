@@ -32,6 +32,7 @@ import re
 from flask import Flask, request, g, session, redirect, url_for, render_template
 from flask import render_template_string, jsonify, Response
 from flask_github import GitHub
+from flask_cors import CORS #enable cross origin request?
 
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -93,6 +94,14 @@ class FlaskApp(Flask):
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `main.py`.
 app = FlaskApp(__name__)
+CORS(app) #cross origin across all - not working (and dangerous)
+app.config['CORS_HEADERS'] = 'Content-Type'
+cors = CORS(app, resources={
+    r"/api/*":{
+        "origins":"*"
+    }
+})
+# cors = CORS(app, resources={r"/api/*": {"origins": "*"}}) #cross origin for /api/
 
 app.config.from_object('config')
 
@@ -1057,11 +1066,12 @@ def openVisualiseAcrossSheets():
 def hello():
   return jsonify(hello='world') # Returns HTTP Response with {"hello": "world"}
 
-@app.route('/api/openVisualiseAcrossSheets', methods=['GET'])
+@app.route('/api/openVisualiseAcrossSheets', methods=['POST'])
+# @cross_origin(allow_headers=['Content-Type']) #didn't work?
 # @verify_logged_in #todo: how to do this?
 def apiOpenVisualiseAcrossSheets():
     #build data we need for dotStr query (new one!)
-    if request.method == "GET":
+    if request.method == "POST":
         idString = request.form.get("idList")
         print("idString is: ", idString)
         repo = request.form.get("repo")
@@ -1080,7 +1090,7 @@ def apiOpenVisualiseAcrossSheets():
 
 
 @app.route('/openVisualise', methods=['POST'])
-@verify_logged_in
+@verify_logged_in 
 def openVisualise():
     if request.method == "POST":
         repo = request.form.get("repo")
@@ -1111,8 +1121,9 @@ def openVisualise():
     return ("Only POST allowed.")
 
 
+# todo: below is never reached? 
 @app.route('/visualise/<repo>/<sheet>')
-@verify_logged_in
+@verify_logged_in # todo: does this need to be disabled to allow cross origin requests? apparently not!
 def visualise(repo, sheet):
     print("reached visualise")
     return render_template("visualise.html", sheet=sheet, repo=repo)

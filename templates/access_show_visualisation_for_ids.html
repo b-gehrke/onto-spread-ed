@@ -1,0 +1,22 @@
+<script type="text/javascript">
+    window.addEventListener("load", function () {
+        form = document.createElement("FORM");
+        form.name = 'form';
+        form.method = 'POST';
+        form.action = 'http://127.0.0.1:8080/api/openVisualiseAcrossSheets';
+        form.target = 'VisualisationWindow';
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = "idList";
+        input.value = JSON.stringify("ADDICTO:0000323 ADDICTO:0000322 ADDICTO:0000324 ADDICTO:0000967 ADDICTO:0000325 ADDICTO:0000326");
+        form.appendChild(input);
+
+        var input3 = document.createElement('input');
+        input3.type = 'hidden';
+        input3.name = "repo";
+        input3.value = "AddictO";
+        form.appendChild(input3);
+        document.body.appendChild(form);
+        form.submit();
+    });
+</script>
