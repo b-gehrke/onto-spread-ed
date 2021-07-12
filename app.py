@@ -213,13 +213,13 @@ class SpreadsheetSearcher:
     def getNextId(self,repo_name):
         self.threadLock.acquire()
         next_id_obj = NextId.query.filter_by(repo_name=repo_name).first()
-        if next_id_obj is None:  
-            print("Adding a new nextid")
-            next_id_obj = NextId()
-            next_id_obj.repo_name = repo_name
-            next_id_obj.next_id = 955 if repo_name=="AddictO" else 50000
-            db_session.add(next_id_obj)
-            db_session.commit()
+        #if next_id_obj is None:
+        #    print("Adding a new nextid")
+        #    next_id_obj = NextId()
+        #    next_id_obj.repo_name = repo_name
+        #    next_id_obj.next_id = 955 if repo_name=="AddictO" else 50000
+        #    db_session.add(next_id_obj)
+        #    db_session.commit()
 
         next_id = next_id_obj.next_id
         next_id_updated = next_id+1

@@ -1106,6 +1106,7 @@
             //show buttons concerning rows:
             $('#delete-rows').show();
             if (data['ID'] === undefined) { //for tables without ID
+                $('#generate-identifier').show();
             } else {
                 $('#visualise-selection').show(); //only for tables with ID column
             }
@@ -1130,6 +1131,7 @@
                 $('#ask-for-review').hide();
                 $('#reviewed').hide();
                 $('#visualise-selection').hide();
+                $('#generate-identifier').hide();
             }
             //re-do styling
             if (data[curation_status] === undefined) { //for tables without curation_status
