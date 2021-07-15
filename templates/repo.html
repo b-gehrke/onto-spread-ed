@@ -72,10 +72,17 @@
 
   <br></br>
   <label style="color: #1b1a1a;" class="font-weight-bold" for="idList">Visualise a selection of ID's:</label>
+  
+
   <form id="idSubmission">
     <textarea id="idList" form="idSubmission" class="form-control" name="idList" value="" placeholder='list of IDs separated by spaces and/or new lines'
       rows="3"></textarea>
-    <input id="visualise-IDs" type="submit" class="btn btn-outline-success"></input>
+    <button type="submit" id="visualise-IDs" name="visualise_selected_ids" value="visualise_ids" class="btn btn-outline-success fab fa-uncharted"
+      onclick="return submitForm(this)">Visualise
+    </button>
+    <button type="submit" id="extract-ontology" name="extract-ontology-content" value="extract" class="btn btn-outline-success fas fa-search"
+      onclick="return submitForm(this)">Extract ontology content
+    </button>
   </form>
 
   <script type="text/javascript">
@@ -143,6 +150,42 @@
       XHR.send(FD);
     }
 
+    function visualiseIDs(){
+      // console.log("loaded");
+      $("#resultsHeader").hide();
+      // Access the form2 element...
+      const form2 = document.getElementById("idSubmission");
+
+      // ...and take over its submit event.
+      // form2.addEventListener("submit", function (event) {
+      //   event.preventDefault();
+        const FD2 = new FormData(form2);
+        console.log(FD2);
+        console.log("visualise ID's clicked");
+        var data = FD2; //todo: build data from here
+        console.log("submitted " + FD2);
+        form2.setAttribute("method", "post");
+        form2.setAttribute("action", "/openVisualiseAcrossSheets");
+        form2.setAttribute("target", 'VisualisationWindow');
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = "repo";
+        input.value = "{{repo_name}}";
+        form2.appendChild(input);
+        var input2 = document.createElement('input');
+        input2.type = 'hidden';
+        input2.name = "data";
+        input2.value = JSON.stringify(data);
+        form2.appendChild(input2);
+        form2.target = 'VisualisationWindow';
+        form2.submit();
+      // });
+    }
+
+    function extractIDs(){
+      //todo: should copy above with different (PAT) view? 
+    }
+
     function submitForm(button) {
       if (button.value == "search") {
         var dialog = bootbox.dialog({
@@ -162,11 +205,17 @@
         sendDataWithLogin();
         $("#resultsHeader").text("SEARCHING...");
         $("#resultsHeader").show();
+      } else if (button.value == "visualise_ids"){
+        console.log("visualise-ids clicked");
+        visualiseIDs();
+      } else if (button.value == "extract"){
+        console.log("extract-ids clicked");
+        extractIDs();
       }
 
       return false;
     }
-
+/*
     window.addEventListener("load", function () {
       // console.log("loaded");
       $("#resultsHeader").hide();
@@ -200,7 +249,7 @@
       });
 
     });
-
+*/
     function createTable(responseData, type) {
       if (type == "search") {
         bootbox.hideAll();
