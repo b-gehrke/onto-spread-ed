@@ -465,6 +465,47 @@ class OntologyDataStore:
 
         return (P)
 
+    #PAT
+    def getIDsFromSelection(self, repo, data, selectedIds):
+        # Add all descendents of the selected IDs, the IDs and their parents.
+        #print("getDot")
+        ids = []
+        for id in selectedIds:
+            entry = data[id]
+            # don't visualise rows which are set to "Obsolete":
+            if 'Curation status' in entry and str(entry['Curation status']) == "Obsolete": 
+                print("Obsolete: ", id)
+            else:
+                if str(entry['ID']) and str(entry['ID']).strip(): #check for none and blank ID's
+                    if 'ID' in entry and len(entry['ID']) > 0:
+                        ids.append(entry['ID'].replace(":", "_"))
+                    if 'Parent' in entry:
+                        entryParent = re.sub("[\[].*?[\]]", "", entry['Parent']).strip()
+                        if entryParent in self.label_to_id:
+                            ids.append(self.label_to_id[entryParent])
+                    entryIri = self.releases[repo].get_iri_for_id(entry['ID'])
+                    if entryIri:
+                        descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
+                    for d in descs:
+                        ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
+                    if self.graphs[repo]:
+                        #todo: does this try except work?
+                        try:
+                            graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo],entry['ID'].replace(":", "_"))
+                        except networkx.exception.NetworkXError:
+                            print("networkx exception error in getDorForSelection", id)
+                        #print("Got descs from graph",graph_descs)
+                        for g in graph_descs:
+                            if g not in ids:
+                                ids.append(g)
+            return(ids)
+            # Then get the subgraph as usual
+            # subgraph = self.graphs[repo].subgraph(ids)
+            # P = networkx.nx_pydot.to_pydot(subgraph)
+
+            # return (P)
+
+
 ontodb = OntologyDataStore()
 
 def verify_logged_in(fn):
@@ -1131,6 +1172,61 @@ def openVisualise():
 def visualise(repo, sheet):
     print("reached visualise")
     return render_template("visualise.html", sheet=sheet, repo=repo)
+
+@app.route('/openPat', methods=['POST'])
+@verify_logged_in
+def openPat():
+    if request.method == "POST":
+        repo = request.form.get("repo")
+        # print("repo is ", repo)
+        sheet = request.form.get("sheet")
+        # print("sheet is ", sheet)
+        table = json.loads(request.form.get("table"))
+        # print("table is: ", table)
+        indices = json.loads(request.form.get("indices"))
+        # print("indices are: ", indices)
+
+        if repo not in ontodb.releases:
+            ontodb.parseRelease(repo)
+        if len(indices) > 0:
+            ontodb.parseSheetData(repo,table)
+            # allIDS = ontodb.getDotForSelection(repo,table,indices).to_string()
+            allIDS = ontodb.getIDsFromSelection(repo,table,indices)
+            print("got allIDS: ", allIDS)
+            # dotStr = ontodb.getDotForSelection(repo,table,indices).to_string()
+        else:
+            ontodb.parseSheetData(repo,table)
+            dotStr = ontodb.getDotForSheetGraph(repo,table).to_string()
+            # print("first dotstr is: ", dotStr)
+            #todo: this is a hack: works fine the second time? do it twice!
+            ontodb.parseSheetData(repo,table)
+            dotStr = ontodb.getDotForSheetGraph(repo,table).to_string()
+
+        # print("dotStr is: ", dotStr)
+        return render_template("visualise.html", sheet=sheet, repo=repo, dotStr=dotStr)
+
+    return ("Only POST allowed.")
+
+@app.route('/openPatAcrossSheets', methods=['POST'])
+@verify_logged_in
+def openPatAcrossSheets():
+    #build data we need for dotStr query (new one!)
+    if request.method == "POST":
+        idString = request.form.get("idList")
+        print("idString is: ", idString)
+        repo = request.form.get("repo") 
+        print("repo is ", repo)
+        idList = idString.split()
+        # for i in idList:
+        #     print("i is: ", i)
+        # indices = json.loads(request.form.get("indices"))
+        # print("indices are: ", indices)
+        ontodb.parseRelease(repo)
+        #todo: do we need to support more than one repo at a time here?
+        dotStr = ontodb.getDotForIDs(repo,idList).to_string()
+        return render_template("visualise.html", sheet="selection", repo=repo, dotStr=dotStr)
+
+    return ("Only POST allowed.")
 
 @app.route('/edit_external/<repo_key>/<path:folder_path>')
 @verify_logged_in

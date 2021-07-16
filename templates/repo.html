@@ -184,6 +184,34 @@
 
     function extractIDs(){
       //todo: should copy above with different (PAT) view? 
+      // console.log("loaded");
+      $("#resultsHeader").hide();
+      // Access the form2 element...
+      const form2 = document.getElementById("idSubmission");
+
+      // ...and take over its submit event.
+      // form2.addEventListener("submit", function (event) {
+      //   event.preventDefault();
+        const FD2 = new FormData(form2);
+        console.log(FD2);
+        console.log("visualise ID's clicked");
+        var data = FD2; //todo: build data from here
+        console.log("submitted " + FD2);
+        form2.setAttribute("method", "post");
+        form2.setAttribute("action", "/openPatAcrossSheets");
+        form2.setAttribute("target", 'VisualisationWindow');
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = "repo";
+        input.value = "{{repo_name}}";
+        form2.appendChild(input);
+        var input2 = document.createElement('input');
+        input2.type = 'hidden';
+        input2.name = "data";
+        input2.value = JSON.stringify(data);
+        form2.appendChild(input2);
+        form2.target = 'VisualisationWindow';
+        form2.submit();
     }
 
     function submitForm(button) {
