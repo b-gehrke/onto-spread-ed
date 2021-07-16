@@ -445,7 +445,7 @@ class OntologyDataStore:
                     print("Got descs from graph",graph_descs)
                     print(type(graph_descs))
                 except networkx.exception.NetworkXError:
-                    print("got networkx exception in getDotForIDs ", id)
+                    print("got networkx exception in getRelatedIDs ", id)
 
                 if graph_descs is not None:
                     for g in graph_descs:
@@ -486,9 +486,12 @@ class OntologyDataStore:
                         except networkx.exception.NetworkXError:
                             print("networkx exception error in getDorForSelection", id)
                         #print("Got descs from graph",graph_descs)
-                        for g in graph_descs:
-                            if g not in ids:
-                                ids.append(g)
+                        try:
+                            for g in graph_descs:
+                                if g not in ids:
+                                    ids.append(g)
+                        except UnboundLocalError: #todo: loads of these errors, not finding the graph_descs for some reason?
+                            pass
 
         # Then get the subgraph as usual
         subgraph = self.graphs[repo].subgraph(ids)
@@ -524,7 +527,7 @@ class OntologyDataStore:
                         try:
                             graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo],entry['ID'].replace(":", "_"))
                         except networkx.exception.NetworkXError:
-                            print("networkx exception error in getDorForSelection", id)
+                            print("networkx exception error in getIDsFromSelection", id)
                         #print("Got descs from graph",graph_descs)
                         try:
                             for g in graph_descs:
