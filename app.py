@@ -504,6 +504,24 @@ class OntologyDataStore:
             # P = networkx.nx_pydot.to_pydot(subgraph)
 
             # return (P)
+    
+    def getIDsFromSheet(self, repo, data):
+        # list of ids from sheet
+        print("getIDsFromSheet here")
+        ids = []
+        for entry in data:
+            if 'Curation status' in entry and str(entry['Curation status']) == "Obsolete": 
+                print("Obsolete: ", entry)
+            else:
+                if 'ID' in entry and len(entry['ID'])>0:
+                    ids.append(entry['ID'].replace(":","_"))
+
+                if 'Parent' in entry:
+                    entryParent = re.sub("[\[].*?[\]]", "", entry['Parent']).strip()
+                    if entryParent in self.label_to_id:
+                        ids.append(self.label_to_id[entryParent])
+        # print("got id's for whole sheet here: ", ids)
+        return ids
 
 
 ontodb = OntologyDataStore()
@@ -1188,22 +1206,19 @@ def openPat():
 
         if repo not in ontodb.releases:
             ontodb.parseRelease(repo)
-        if len(indices) > 0:
+        if len(indices) > 0: #selection
             ontodb.parseSheetData(repo,table)
-            # allIDS = ontodb.getDotForSelection(repo,table,indices).to_string()
             allIDS = ontodb.getIDsFromSelection(repo,table,indices)
             print("got allIDS: ", allIDS)
-            # dotStr = ontodb.getDotForSelection(repo,table,indices).to_string()
-        else:
+        else: # whole sheet..
             ontodb.parseSheetData(repo,table)
-            dotStr = ontodb.getDotForSheetGraph(repo,table).to_string()
-            # print("first dotstr is: ", dotStr)
-            #todo: this is a hack: works fine the second time? do it twice!
-            ontodb.parseSheetData(repo,table)
-            dotStr = ontodb.getDotForSheetGraph(repo,table).to_string()
+            allIDS = ontodb.getIDsFromSheet(repo, table)
+            #todo: do we need to do above twice? 
+
+            print("allIDS: ", allIDS)
 
         # print("dotStr is: ", dotStr)
-        return render_template("visualise.html", sheet=sheet, repo=repo, dotStr=dotStr)
+        return render_template("visualise.html", sheet=sheet, repo=repo, dotStr=dotStr) #todo: PAT.html
 
     return ("Only POST allowed.")
 
@@ -1224,7 +1239,7 @@ def openPatAcrossSheets():
         ontodb.parseRelease(repo)
         #todo: do we need to support more than one repo at a time here?
         dotStr = ontodb.getDotForIDs(repo,idList).to_string()
-        return render_template("visualise.html", sheet="selection", repo=repo, dotStr=dotStr)
+        return render_template("visualise.html", sheet="selection", repo=repo, dotStr=dotStr) #todo: PAT.html
 
     return ("Only POST allowed.")
 
