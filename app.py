@@ -425,6 +425,37 @@ class OntologyDataStore:
         subgraph = self.graphs[repo].subgraph(ids)
         P = networkx.nx_pydot.to_pydot(subgraph)
         return (P)
+    
+    def getRelatedIDs(self, repo, selectedIds):
+        # Add all descendents of the selected IDs, the IDs and their parents.
+        ids = []
+        for id in selectedIds:
+            ids.append(id.replace(":","_"))
+            entryIri = self.releases[repo].get_iri_for_id(id)
+            print("Got IRI",entryIri,"for ID",id)
+            if entryIri:
+                descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
+                for d in descs:
+                    ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
+            if self.graphs[repo]:
+                graph_descs = None
+                try:
+                    print("repo is: ", repo, " id: ", id)
+                    graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo], id.replace(":", "_"))
+                    print("Got descs from graph",graph_descs)
+                    print(type(graph_descs))
+                except networkx.exception.NetworkXError:
+                    print("got networkx exception in getDotForIDs ", id)
+
+                if graph_descs is not None:
+                    for g in graph_descs:
+                        if g not in ids:
+                            ids.append(g)
+        return ids
+        # # Then get the subgraph as usual
+        # subgraph = self.graphs[repo].subgraph(ids)
+        # P = networkx.nx_pydot.to_pydot(subgraph)
+        # return (P)
 
     def getDotForSelection(self, repo, data, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
@@ -1228,17 +1259,20 @@ def openPatAcrossSheets():
     #build data we need for dotStr query (new one!)
     if request.method == "POST":
         idString = request.form.get("idList")
-        print("idString is: ", idString)
+        # print("idString is: ", idString)
         repo = request.form.get("repo") 
         print("repo is ", repo)
         idList = idString.split()
+        # print("idList: ", idList)
         # for i in idList:
         #     print("i is: ", i)
         # indices = json.loads(request.form.get("indices"))
         # print("indices are: ", indices)
         ontodb.parseRelease(repo)
         #todo: do we need to support more than one repo at a time here?
-        dotStr = ontodb.getDotForIDs(repo,idList).to_string()
+        allIDS = ontodb.getRelatedIDs(repo,idList)
+        print("allIDS: ", allIDS)
+        # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
         return render_template("visualise.html", sheet="selection", repo=repo, dotStr=dotStr) #todo: PAT.html
 
     return ("Only POST allowed.")
