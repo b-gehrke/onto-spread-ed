@@ -271,11 +271,11 @@ class OntologyDataStore:
                 classId = self.releases[repo].get_id_for_iri(classIri)
                 if classId:
                     classId = classId.replace(":","_")
-                    # test: - todo: delete test
+                    # test: - todo: delete this test
                     # print(classId)
                     if "466" in classId:
                         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                        print(classId, " is here, found it no porblem")
+                        print(classId, " is here, found it no problem")
                         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
                     if "463" in classId:
@@ -526,9 +526,12 @@ class OntologyDataStore:
                         except networkx.exception.NetworkXError:
                             print("networkx exception error in getDorForSelection", id)
                         #print("Got descs from graph",graph_descs)
-                        for g in graph_descs:
-                            if g not in ids:
-                                ids.append(g)
+                        try:
+                            for g in graph_descs:
+                                if g not in ids:
+                                    ids.append(g)
+                        except UnboundLocalError: #todo: loads of these errors, not finding the graph_descs for some reason?
+                            pass
             return(ids)
             # Then get the subgraph as usual
             # subgraph = self.graphs[repo].subgraph(ids)
@@ -551,7 +554,7 @@ class OntologyDataStore:
                     entryParent = re.sub("[\[].*?[\]]", "", entry['Parent']).strip()
                     if entryParent in self.label_to_id:
                         ids.append(self.label_to_id[entryParent])
-        # print("got id's for whole sheet here: ", ids)
+        # print("got id's for whole sheet here: ", ids) #todo: what about the descendents here? where are they?
         return ids
 
 
@@ -1249,7 +1252,7 @@ def openPat():
             print("allIDS: ", allIDS)
 
         # print("dotStr is: ", dotStr)
-        return render_template("visualise.html", sheet=sheet, repo=repo, dotStr=dotStr) #todo: PAT.html
+        return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
 
     return ("Only POST allowed.")
 
@@ -1273,7 +1276,7 @@ def openPatAcrossSheets():
         allIDS = ontodb.getRelatedIDs(repo,idList)
         print("allIDS: ", allIDS)
         # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
-        return render_template("visualise.html", sheet="selection", repo=repo, dotStr=dotStr) #todo: PAT.html
+        return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
 
     return ("Only POST allowed.")
 
