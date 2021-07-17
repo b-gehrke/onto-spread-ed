@@ -22,9 +22,18 @@
 
     window.onload = function () {
 
-       var allIDs = {{all_ids | safe}};
+       var allIDs = "{{all_ids | safe}}";
        console.log("got all ids: " + allIDs);
-
+        //turn allIDs into an array:
+        var allIDsArray = allIDs.split(",");
+        //loop through all ids:
+        for (var i = 0; i < allIDsArray.length; i++) {
+            var id = allIDsArray[i];
+            id = id.toString();
+            id = id.replace("[", "");
+            id = id.replace("]", "");            
+            console.log("id: " + id);            
+        }
     }
 
 </script>

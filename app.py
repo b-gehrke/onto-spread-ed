@@ -503,9 +503,12 @@ class OntologyDataStore:
     def getIDsFromSelection(self, repo, data, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
         #print("getDot")
-        ids = []
+        print(selectedIds)
+        ids = [] 
         for id in selectedIds:
+            print("looking at id: ", id)
             entry = data[id]
+            # print("looking at entry: ", entry)
             # don't visualise rows which are set to "Obsolete":
             if 'Curation status' in entry and str(entry['Curation status']) == "Obsolete": 
                 print("Obsolete: ", id)
@@ -523,19 +526,21 @@ class OntologyDataStore:
                     for d in descs:
                         ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                     if self.graphs[repo]:
+                        graph_descs = None
                         #todo: does this try except work?
                         try:
                             graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo],entry['ID'].replace(":", "_"))
                         except networkx.exception.NetworkXError:
                             print("networkx exception error in getIDsFromSelection", id)
+                            pass
                         #print("Got descs from graph",graph_descs)
-                        try:
+                        if graph_descs is not None:
                             for g in graph_descs:
                                 if g not in ids:
                                     ids.append(g)
-                        except UnboundLocalError: #todo: loads of these errors, not finding the graph_descs for some reason?
-                            pass
-            return(ids)
+                        # except UnboundLocalError: #todo: loads of these errors, not finding the graph_descs for some reason?
+                        #     pass
+        return(ids)
             # Then get the subgraph as usual
             # subgraph = self.graphs[repo].subgraph(ids)
             # P = networkx.nx_pydot.to_pydot(subgraph)
@@ -1244,7 +1249,7 @@ def openPat():
         if repo not in ontodb.releases:
             ontodb.parseRelease(repo)
         if len(indices) > 0: #selection
-            ontodb.parseSheetData(repo,table)
+            # ontodb.parseSheetData(repo,table)
             allIDS = ontodb.getIDsFromSelection(repo,table,indices)
             print("got allIDS: ", allIDS)
         else: # whole sheet..
@@ -1252,7 +1257,7 @@ def openPat():
             allIDS = ontodb.getIDsFromSheet(repo, table)
             #todo: do we need to do above twice? 
 
-            print("allIDS: ", allIDS)
+            # print("allIDS: ", allIDS)
 
         # print("dotStr is: ", dotStr)
         return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
