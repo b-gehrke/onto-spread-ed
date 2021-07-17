@@ -477,8 +477,8 @@ class OntologyDataStore:
                     entryIri = self.releases[repo].get_iri_for_id(entry['ID'])
                     if entryIri:
                         descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
-                    for d in descs:
-                        ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
+                        for d in descs:
+                            ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                     if self.graphs[repo]:
                         #todo: does this try except work?
                         try:
@@ -523,8 +523,8 @@ class OntologyDataStore:
                     entryIri = self.releases[repo].get_iri_for_id(entry['ID'])
                     if entryIri:
                         descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
-                    for d in descs:
-                        ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
+                        for d in descs:
+                            ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                     if self.graphs[repo]:
                         graph_descs = None
                         #todo: does this try except work?
@@ -532,7 +532,7 @@ class OntologyDataStore:
                             graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo],entry['ID'].replace(":", "_"))
                         except networkx.exception.NetworkXError:
                             print("networkx exception error in getIDsFromSelection", id)
-                            pass
+                            
                         #print("Got descs from graph",graph_descs)
                         if graph_descs is not None:
                             for g in graph_descs:
