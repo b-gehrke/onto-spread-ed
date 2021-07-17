@@ -1251,13 +1251,16 @@ def openPat():
         if len(indices) > 0: #selection
             # ontodb.parseSheetData(repo,table)
             allIDS = ontodb.getIDsFromSelection(repo,table,indices)
-            print("got allIDS: ", allIDS)
+            # print("got allIDS: ", allIDS)
         else: # whole sheet..
             ontodb.parseSheetData(repo,table)
             allIDS = ontodb.getIDsFromSheet(repo, table)
             #todo: do we need to do above twice? 
-
-            # print("allIDS: ", allIDS)
+        
+        print("allIDS: ", allIDS)
+        #remove duplicates from allIDS: 
+        allIDS = list(dict.fromkeys(allIDS))
+        
 
         # print("dotStr is: ", dotStr)
         return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
@@ -1283,6 +1286,8 @@ def openPatAcrossSheets():
         #todo: do we need to support more than one repo at a time here?
         allIDS = ontodb.getRelatedIDs(repo,idList)
         print("allIDS: ", allIDS)
+        #remove duplicates from allIDS: 
+        allIDS = list(dict.fromkeys(allIDS))
         # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
         return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
 
