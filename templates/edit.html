@@ -2178,12 +2178,12 @@
     $("#extract-ontology-all").click(function () {
         console.log("extract ontology all clicked")
         var indices = [];
-        window.open('', 'VisualisationWindow');
+        window.open('', 'PatWindow');
 
         var form = document.createElement("form");
         form.setAttribute("method", "post");
         form.setAttribute("action", "/openPat");
-        form.setAttribute("target", 'VisualisationWindow');
+        form.setAttribute("target", 'PatWindow');
         var input = document.createElement('input');
         input.type = 'hidden';
         input.name = "sheet";
@@ -2205,7 +2205,7 @@
         input5.value = JSON.stringify(indices);
         form.appendChild(input5);
         document.body.appendChild(form);
-        form.target = 'VisualisationWindow';
+        form.target = 'PatWindow';
         form.submit();
         document.body.removeChild(form);
     });
@@ -2221,12 +2221,12 @@
         }
         indices.sort(function (a, b) { return a - b });
         console.log(indices);
-        window.open('', 'VisualisationWindow');
+        window.open('', 'PatWindow');
 
         var form = document.createElement("form");
         form.setAttribute("method", "post");
         form.setAttribute("action", "/openPat");
-        form.setAttribute("target", 'VisualisationWindow');
+        form.setAttribute("target", 'PatWindow');
         var input = document.createElement('input');
         input.type = 'hidden';
         input.name = "sheet";
@@ -2248,7 +2248,7 @@
         input5.value = JSON.stringify(indices);
         form.appendChild(input5);
         document.body.appendChild(form);
-        form.target = 'VisualisationWindow';
+        form.target = 'PatWindow';
         form.submit();
         document.body.removeChild(form);
     });

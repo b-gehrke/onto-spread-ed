@@ -400,19 +400,16 @@ class OntologyDataStore:
                     entryParent = re.sub("[\[].*?[\]]", "", entry['Parent']).strip()
                     if entryParent in self.label_to_id:
                         ids.append(self.label_to_id[entryParent])
-        # print("got id's for whole sheet here: ", ids) #todo: what about the descendents here? where are they?
         return ids
     
     
     def getIDsFromSelection(self, repo, data, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
-        #print("getDot")
         print(selectedIds)
         ids = [] 
         for id in selectedIds:
             print("looking at id: ", id)
             entry = data[id]
-            # print("looking at entry: ", entry)
             # don't visualise rows which are set to "Obsolete":
             if 'Curation status' in entry and str(entry['Curation status']) == "Obsolete": 
                 print("Obsolete: ", id)
@@ -431,23 +428,19 @@ class OntologyDataStore:
                             ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                     if self.graphs[repo]:
                         graph_descs = None
-                        #todo: does this try except work?
                         try:
                             graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo],entry['ID'].replace(":", "_"))
                         except networkx.exception.NetworkXError:
                             print("networkx exception error in getIDsFromSelection", id)
-                            
-                        #print("Got descs from graph",graph_descs)
                         if graph_descs is not None:
                             for g in graph_descs:
                                 if g not in ids:
-                                    ids.append(g)
-                        # except UnboundLocalError: #todo: loads of these errors, not finding the graph_descs for some reason?
-                        #     pass
+                                    ids.append(g)                        
         return(ids)
 
     def getRelatedIDs(self, repo, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
+        #todo: do we need to check for parents here also? HOW?
         ids = []
         for id in selectedIds:
             ids.append(id.replace(":","_"))
