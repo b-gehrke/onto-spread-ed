@@ -374,19 +374,20 @@ class OntologyDataStore:
                                                                color=rcolour,
                                                                label=rel_name)
  
- # todo: re-factor the following: 
-    # getDotForSheetGraph - graph from whole sheet
-    # getDotForIDs - graph from ID list
-    # getRelatedIds - related ID's from list of ID's
-    # getDotForSelection - graph from selection in sheet
-    # getIDsFromSelection - related ID's from selection in sheet
-    # getIDsFromSheet - related ID's from whole sheet
- # common methods: 
+ # todo: re-factoring the following:  
     
+    # getIDsFromSheet - related ID's from whole sheet
+    # getIDsFromSelection - related ID's from selection in sheet    
+    # getRelatedIds - related ID's from list of ID's
 
-    def getDotForSheetGraph(self, repo, data):
-        # Get a list of IDs from the sheet graph
-        print("getDotForSheetGraph here")
+    # getDotForSheetGraph - graph from whole sheet
+    # getDotForSelection - graph from selection in sheet
+    # getDotForIDs - graph from ID list
+ 
+    
+    def getIDsFromSheet(self, repo, data):
+        # list of ids from sheet
+        print("getIDsFromSheet here")
         ids = []
         for entry in data:
             if 'Curation status' in entry and str(entry['Curation status']) == "Obsolete": 
@@ -399,117 +400,10 @@ class OntologyDataStore:
                     entryParent = re.sub("[\[].*?[\]]", "", entry['Parent']).strip()
                     if entryParent in self.label_to_id:
                         ids.append(self.label_to_id[entryParent])
-        # print("got id's for graph here: ", ids)
-        subgraph = self.graphs[repo].subgraph(ids)
-        P = networkx.nx_pydot.to_pydot(subgraph)
-
-        return(P)
-
-    def getDotForIDs(self, repo, selectedIds):
-        # Add all descendents of the selected IDs, the IDs and their parents.
-        ids = []
-        for id in selectedIds:
-            ids.append(id.replace(":","_"))
-            entryIri = self.releases[repo].get_iri_for_id(id)
-            print("Got IRI",entryIri,"for ID",id)
-            if entryIri:
-                descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
-                for d in descs:
-                    ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
-            if self.graphs[repo]:
-                graph_descs = None
-                try:
-                    print("repo is: ", repo, " id: ", id)
-                    graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo], id.replace(":", "_"))
-                    print("Got descs from graph",graph_descs)
-                    print(type(graph_descs))
-                except networkx.exception.NetworkXError:
-                    print("got networkx exception in getDotForIDs ", id)
-
-                if graph_descs is not None:
-                    for g in graph_descs:
-                        if g not in ids:
-                            ids.append(g)
-
-        # Then get the subgraph as usual
-        subgraph = self.graphs[repo].subgraph(ids)
-        P = networkx.nx_pydot.to_pydot(subgraph)
-        return (P)
-    
-    def getRelatedIDs(self, repo, selectedIds):
-        # Add all descendents of the selected IDs, the IDs and their parents.
-        ids = []
-        for id in selectedIds:
-            ids.append(id.replace(":","_"))
-            entryIri = self.releases[repo].get_iri_for_id(id)
-            print("Got IRI",entryIri,"for ID",id)
-            if entryIri:
-                descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
-                for d in descs:
-                    ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
-            if self.graphs[repo]:
-                graph_descs = None
-                try:
-                    print("repo is: ", repo, " id: ", id)
-                    graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo], id.replace(":", "_"))
-                    print("Got descs from graph",graph_descs)
-                    print(type(graph_descs))
-                except networkx.exception.NetworkXError:
-                    print("got networkx exception in getRelatedIDs ", id)
-
-                if graph_descs is not None:
-                    for g in graph_descs:
-                        if g not in ids:
-                            ids.append(g)
+        # print("got id's for whole sheet here: ", ids) #todo: what about the descendents here? where are they?
         return ids
-        # # Then get the subgraph as usual
-        # subgraph = self.graphs[repo].subgraph(ids)
-        # P = networkx.nx_pydot.to_pydot(subgraph)
-        # return (P)
-
-    def getDotForSelection(self, repo, data, selectedIds):
-        # Add all descendents of the selected IDs, the IDs and their parents.
-        #print("getDot")
-        ids = []
-        for id in selectedIds:
-            entry = data[id]
-            # don't visualise rows which are set to "Obsolete":
-            if 'Curation status' in entry and str(entry['Curation status']) == "Obsolete": 
-                print("Obsolete: ", id)
-            else:
-                if str(entry['ID']) and str(entry['ID']).strip(): #check for none and blank ID's
-                    if 'ID' in entry and len(entry['ID']) > 0:
-                        ids.append(entry['ID'].replace(":", "_"))
-                    if 'Parent' in entry:
-                        entryParent = re.sub("[\[].*?[\]]", "", entry['Parent']).strip()
-                        if entryParent in self.label_to_id:
-                            ids.append(self.label_to_id[entryParent])
-                    entryIri = self.releases[repo].get_iri_for_id(entry['ID'])
-                    if entryIri:
-                        descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
-                        for d in descs:
-                            ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
-                    if self.graphs[repo]:
-                        #todo: does this try except work?
-                        try:
-                            graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo],entry['ID'].replace(":", "_"))
-                        except networkx.exception.NetworkXError:
-                            print("networkx exception error in getDorForSelection", id)
-                        #print("Got descs from graph",graph_descs)
-                        try:
-                            for g in graph_descs:
-                                if g not in ids:
-                                    ids.append(g)
-                        except UnboundLocalError: #todo: loads of these errors, not finding the graph_descs for some reason?
-                            pass
-
-        # Then get the subgraph as usual
-        subgraph = self.graphs[repo].subgraph(ids)
-        P = networkx.nx_pydot.to_pydot(subgraph)
-
-        return (P)
-
-    #PAT
+    
+    
     def getIDsFromSelection(self, repo, data, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
         #print("getDot")
@@ -551,29 +445,56 @@ class OntologyDataStore:
                         # except UnboundLocalError: #todo: loads of these errors, not finding the graph_descs for some reason?
                         #     pass
         return(ids)
-            # Then get the subgraph as usual
-            # subgraph = self.graphs[repo].subgraph(ids)
-            # P = networkx.nx_pydot.to_pydot(subgraph)
 
-            # return (P)
-    
-    def getIDsFromSheet(self, repo, data):
-        # list of ids from sheet
-        print("getIDsFromSheet here")
+    def getRelatedIDs(self, repo, selectedIds):
+        # Add all descendents of the selected IDs, the IDs and their parents.
         ids = []
-        for entry in data:
-            if 'Curation status' in entry and str(entry['Curation status']) == "Obsolete": 
-                print("Obsolete: ", entry)
-            else:
-                if 'ID' in entry and len(entry['ID'])>0:
-                    ids.append(entry['ID'].replace(":","_"))
+        for id in selectedIds:
+            ids.append(id.replace(":","_"))
+            entryIri = self.releases[repo].get_iri_for_id(id)
+            print("Got IRI",entryIri,"for ID",id)
+            if entryIri:
+                descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
+                for d in descs:
+                    ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
+            if self.graphs[repo]:
+                graph_descs = None
+                try:
+                    print("repo is: ", repo, " id: ", id)
+                    graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo], id.replace(":", "_"))
+                    print("Got descs from graph",graph_descs)
+                    print(type(graph_descs))
+                except networkx.exception.NetworkXError:
+                    print("got networkx exception in getRelatedIDs ", id)
 
-                if 'Parent' in entry:
-                    entryParent = re.sub("[\[].*?[\]]", "", entry['Parent']).strip()
-                    if entryParent in self.label_to_id:
-                        ids.append(self.label_to_id[entryParent])
-        # print("got id's for whole sheet here: ", ids) #todo: what about the descendents here? where are they?
+                if graph_descs is not None:
+                    for g in graph_descs:
+                        if g not in ids:
+                            ids.append(g)
         return ids
+
+    def getDotForSheetGraph(self, repo, data):
+        # Get a list of IDs from the sheet graph
+        ids = OntologyDataStore.getIDsFromSheet(self, repo, data)
+        subgraph = self.graphs[repo].subgraph(ids)
+        P = networkx.nx_pydot.to_pydot(subgraph)
+        return(P)
+
+    def getDotForSelection(self, repo, data, selectedIds):
+        # Add all descendents of the selected IDs, the IDs and their parents.
+        ids = OntologyDataStore.getIDsFromSelection(self, repo, data, selectedIds)
+        # Then get the subgraph as usual
+        subgraph = self.graphs[repo].subgraph(ids)
+        P = networkx.nx_pydot.to_pydot(subgraph)
+        return (P)
+
+    def getDotForIDs(self, repo, selectedIds):
+        # Add all descendents of the selected IDs, the IDs and their parents.
+        ids = OntologyDataStore.getRelatedIDs(self, repo, selectedIds)
+        # Then get the subgraph as usual
+        subgraph = self.graphs[repo].subgraph(ids)
+        P = networkx.nx_pydot.to_pydot(subgraph)
+        return (P)   
 
 
 ontodb = OntologyDataStore()
