@@ -373,6 +373,16 @@ class OntologyDataStore:
                                                                self.label_to_id[relValue.strip()],
                                                                color=rcolour,
                                                                label=rel_name)
+ 
+ # todo: re-factor the following: 
+    # getDotForSheetGraph - graph from whole sheet
+    # getDotForIDs - graph from ID list
+    # getRelatedIds - related ID's from list of ID's
+    # getDotForSelection - graph from selection in sheet
+    # getIDsFromSelection - related ID's from selection in sheet
+    # getIDsFromSheet - related ID's from whole sheet
+ # common methods: 
+    
 
     def getDotForSheetGraph(self, repo, data):
         # Get a list of IDs from the sheet graph
