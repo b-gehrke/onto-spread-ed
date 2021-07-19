@@ -4,7 +4,7 @@
         form.name = 'form';
         form.method = 'POST';
         form.action = 'http://127.0.0.1:8080/api/openVisualiseAcrossSheets';
-        form.target = 'VisualisationWindow';
+        // form.target = 'VisualisationWindow';
         var input = document.createElement('input');
         input.type = 'hidden';
         input.name = "idList";
@@ -18,5 +18,8 @@
         form.appendChild(input3);
         document.body.appendChild(form);
         form.submit();
+        open(form.action);
+
+        
     });
 </script>
