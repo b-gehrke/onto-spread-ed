@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ config['APP_TITLE'] }}{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+
+
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <h1 id="s-name"> PAT </h2>
+    </div>
+</div>
+
+
+
+
+<script>
+
+
+    window.onload = function () {
+
+       var allIDs = "{{all_ids | safe}}";
+       console.log("got all ids: " + allIDs);
+        //turn allIDs into an array:
+        var allIDsArray = allIDs.split(",");
+        //loop through all ids:
+        for (var i = 0; i < allIDsArray.length; i++) {
+            var id = allIDsArray[i];
+            id = id.toString();
+            id = id.replace("[", "");
+            id = id.replace("]", "");            
+            console.log("id: " + id);            
+        }
+    }
+
+</script>
+{% endblock %}
+
+{%block javascript%}
+
+{% endblock %}
