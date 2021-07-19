@@ -400,7 +400,7 @@ class OntologyDataStore:
                     entryParent = re.sub("[\[].*?[\]]", "", entry['Parent']).strip()
                     if entryParent in self.label_to_id:
                         ids.append(self.label_to_id[entryParent])
-        return ids
+        return (ids)
     
     
     def getIDsFromSelection(self, repo, data, selectedIds):
@@ -432,11 +432,12 @@ class OntologyDataStore:
                             graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo],entry['ID'].replace(":", "_"))
                         except networkx.exception.NetworkXError:
                             print("networkx exception error in getIDsFromSelection", id)
+                        
                         if graph_descs is not None:
                             for g in graph_descs:
                                 if g not in ids:
                                     ids.append(g)                        
-        return(ids)
+        return (ids)
 
     def getRelatedIDs(self, repo, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
@@ -464,14 +465,14 @@ class OntologyDataStore:
                     for g in graph_descs:
                         if g not in ids:
                             ids.append(g)
-        return ids
+        return (ids)
 
     def getDotForSheetGraph(self, repo, data):
         # Get a list of IDs from the sheet graph
         ids = OntologyDataStore.getIDsFromSheet(self, repo, data)
         subgraph = self.graphs[repo].subgraph(ids)
         P = networkx.nx_pydot.to_pydot(subgraph)
-        return(P)
+        return (P)
 
     def getDotForSelection(self, repo, data, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
