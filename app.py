@@ -460,7 +460,8 @@ class OntologyDataStore:
                 descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
                 for d in descs:
                     ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
-                superclasses = pyhornedowl.get_superclasses(self.releases[repo], entryIri) 
+                superclasses = self.releases[repo].get_superclasses(entryIri)
+                # superclasses = pyhornedowl.get_superclasses(self.releases[repo], entryIri) 
                 for s in superclasses:
                     ids.append(self.releases[repo].get_id_for_iri(s).replace(":", "_"))
             if self.graphs[repo]:
