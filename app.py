@@ -1084,6 +1084,7 @@ def openVisualiseAcrossSheets():
         repo = request.form.get("repo") 
         print("repo is ", repo)
         idList = idString.split()
+        print("idList is: ", idList)
         # for i in idList:
         #     print("i is: ", i)
         # indices = json.loads(request.form.get("indices"))
