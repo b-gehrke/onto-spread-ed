@@ -271,19 +271,6 @@ class OntologyDataStore:
                 classId = self.releases[repo].get_id_for_iri(classIri)
                 if classId:
                     classId = classId.replace(":","_")
-                    # test: - todo: delete this test
-                    # print(classId)
-                    if "466" in classId:
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                        print(classId, " is here, found it no problem")
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-                    if "463" in classId:
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                        print(classId, " is here, why not found?")
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                    # end test 
-
                     # is it already in the graph?
                     if classId not in self.graphs[repo].nodes:
                         label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL'])
@@ -441,16 +428,19 @@ class OntologyDataStore:
 
     def getRelatedIDs(self, repo, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
-        #todo: do we need to check for parents here also? HOW?
         ids = []
         for id in selectedIds:
             ids.append(id.replace(":","_"))
             entryIri = self.releases[repo].get_iri_for_id(id)
             print("Got IRI",entryIri,"for ID",id)
+            #todo: get label, definitions, synonyms here?
+
             if entryIri:
                 descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
                 for d in descs:
                     ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
+                    #todo: get label, definitions, synonyms here?
+                    
                 superclasses = self.releases[repo].get_superclasses(entryIri)
                 # superclasses = pyhornedowl.get_superclasses(self.releases[repo], entryIri) 
                 for s in superclasses:
@@ -493,6 +483,38 @@ class OntologyDataStore:
         subgraph = self.graphs[repo].subgraph(ids)
         P = networkx.nx_pydot.to_pydot(subgraph)
         return (P)   
+
+    #todo: get labels, definitions, synonyms to go with ID's here:
+    #need to create a dictionary and add all info to it, in the relevant place
+    def getMetaData(self, repo, allIDS):
+        print("getting metadata from: ", str(allIDS[0]))
+        # id = "ADDICTO:0000308"
+        label = ""
+        id = allIDS[0]
+        # id = ' '.join(str(allIDS[0])) #test one only
+        # entryIri = self.releases[repo].get_iri_for_id(id)
+        
+        all_labels = set()
+        for classIri in self.releases[repo].get_classes():
+            classId = self.releases[repo].get_id_for_iri(classIri).replace(":", "_")            
+            if classId == id:
+                print("GOT A MATCH: ", classId)
+                label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
+                print("label for this MATCH is: ", label)
+
+                #todo: need to get definition and synonyms still below: 
+                definition = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
+                print("definition for this MATCH is: ", definition)
+                synonyms = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
+                print("synonym for this MATCH is: ", synonyms)
+                # ttt = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL'])
+            # if classIri == entryIri:
+            # all_labels.add(self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']))
+        # print("all labels TEST:", list(dict.fromkeys(all_labels)))
+        # entryIri = self.releases[repo].get_iri_for_id(id)
+        # label = self.releases[repo].get_annotation(entryIri, app.config['RDFSLABEL'])
+        return (label)
+
 
 
 ontodb = OntologyDataStore()
@@ -1207,7 +1229,7 @@ def openPatAcrossSheets():
         repo = request.form.get("repo") 
         print("repo is ", repo)
         idList = idString.split()
-        # print("idList: ", idList)
+        print("idList: ", idList)
         # for i in idList:
         #     print("i is: ", i)
         # indices = json.loads(request.form.get("indices"))
@@ -1218,6 +1240,12 @@ def openPatAcrossSheets():
         print("allIDS: ", allIDS)
         #remove duplicates from allIDS: 
         allIDS = list(dict.fromkeys(allIDS))
+
+        #todo: all experimental from here: 
+        allData = ontodb.getMetaData(repo, allIDS)  
+        print("TEST got a label: ", allData)    
+
+        
         # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
         return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
 
