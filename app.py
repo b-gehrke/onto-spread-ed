@@ -509,7 +509,7 @@ class OntologyDataStore:
                         iri = self.releases[repo].get_iri_for_label(label)
                         #todo: need to get definition and synonyms still below:
                         if self.releases[repo].get_annotation(classIri, DEFN) is not None:             
-                            definition = self.releases[repo].get_annotation(classIri, DEFN).replace(",", "") #.replace("&", "and").replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")    
+                            definition = self.releases[repo].get_annotation(classIri, DEFN).replace(",", "").replace("'", "").replace("\"", "") #.replace("&", "and").replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")    
                             # definition = self.releases[repo].get_annotation(classIri, app.config['DEFN']) 
                             print("definition for this MATCH is: ", definition)
                         else:
