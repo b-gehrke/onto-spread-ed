@@ -488,6 +488,11 @@ class OntologyDataStore:
     #need to create a dictionary and add all info to it, in the relevant place
     def getMetaData(self, repo, allIDS):
         print("getting metadata from: ", str(allIDS[0]))
+
+        axioms = self.releases[repo].get_axioms()
+
+        print("axioms: ", axioms[1:10])
+
         # id = "ADDICTO:0000308" #test
         # id = allIDS[0] #test
 
@@ -504,9 +509,10 @@ class OntologyDataStore:
                     print("GOT A MATCH: ", classId)
                     label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
                     print("label for this MATCH is: ", label)
-
-                    #todo: need to get definition and synonyms still below: 
-                    definition = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
+                    iri = self.releases[repo].get_iri_for_label(label)
+                    #todo: need to get definition and synonyms still below:
+                    definition = self.releases[repo].get_annotation(classIri, 'DEFN')  
+                    # definition = self.releases[repo].get_annotation(classIri, app.config['DEFN']) 
                     print("definition for this MATCH is: ", definition)
                     synonyms = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
                     print("synonym for this MATCH is: ", synonyms)
@@ -1220,9 +1226,10 @@ def openPat():
         #remove duplicates from allIDS: 
         allIDS = list(dict.fromkeys(allIDS))
         
-
+        allData = ontodb.getMetaData(repo, allIDS)  
+        print("TEST allData: ", allData) 
         # print("dotStr is: ", dotStr)
-        return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
+        return render_template("pat.html", repo=repo, all_ids=allIDS, all_data=allData) #todo: PAT.html
 
     return ("Only POST allowed.")
 
@@ -1254,7 +1261,7 @@ def openPatAcrossSheets():
 
         
         # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
-        return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
+        return render_template("pat.html", repo=repo, all_ids=allIDS, all_data=allData) #todo: PAT.html
 
     return ("Only POST allowed.")
 
