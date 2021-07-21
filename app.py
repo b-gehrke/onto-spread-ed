@@ -487,11 +487,14 @@ class OntologyDataStore:
     #todo: get labels, definitions, synonyms to go with ID's here:
     #need to create a dictionary and add all info to it, in the relevant place
     def getMetaData(self, repo, allIDS):
-        print("getting metadata from: ", str(allIDS[0]))
+        DEFN = "http://purl.obolibrary.org/obo/IAO_0000115"
+        SYN = "http://purl.obolibrary.org/obo/IAO_0000118"
 
-        axioms = self.releases[repo].get_axioms()
+        # print("getting metadata from: ", str(allIDS[0]))
 
-        print("axioms: ", axioms[1:10])
+        # axioms = self.releases[repo].get_axioms()
+
+        # print("axioms: ", axioms[1:10])
 
         # id = "ADDICTO:0000308" #test
         # id = allIDS[0] #test
@@ -508,17 +511,19 @@ class OntologyDataStore:
                 if classId == id:
                     print("GOT A MATCH: ", classId)
                     label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
-                    print("label for this MATCH is: ", label)
+                    # print("label for this MATCH is: ", label)
                     iri = self.releases[repo].get_iri_for_label(label)
                     #todo: need to get definition and synonyms still below:
-                    definition = self.releases[repo].get_annotation(classIri, 'DEFN')  
+                    definition = self.releases[repo].get_annotation(classIri, DEFN).replace(",", "")  
                     # definition = self.releases[repo].get_annotation(classIri, app.config['DEFN']) 
                     print("definition for this MATCH is: ", definition)
-                    synonyms = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
+                    synonyms = self.releases[repo].get_annotation(classIri, SYN) 
                     print("synonym for this MATCH is: ", synonyms)
                     entries.append({
                         "id": id,
-                        "label": label
+                        "label": label, 
+                        "synonyms": synonyms,
+                        "definition": definition                        
                     })
                 # ttt = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL'])
             # if classIri == entryIri:

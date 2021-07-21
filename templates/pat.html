@@ -59,10 +59,25 @@
                 // textbox.id = key;
                 textbox.value = entry_clean;
                 document.getElementById("pat").appendChild(textbox);
-                if (i % 2 == 1) {
-                    var br = document.createElement("br");
-                    document.getElementById("pat").appendChild(br);
-                }                
+                //if text longer than screen, make it scrollable
+                if (entry_clean.length > 50) {
+                    textbox.style.width = "100%";
+                    textbox.style.height = "100%";
+                    textbox.style.overflow = "auto";
+                    //todo: wrap textbox in scrollable div
+                }
+                
+
+                // if (i % 2 == 1) {
+                //     var br = document.createElement("br");
+                //     document.getElementById("pat").appendChild(br);
+                // }   
+                //every 4 textboxes, put into a bounding div
+                if (i % 4 == 3) {
+                    var div = document.createElement("div");
+                    div.style.width = "100%";
+                    document.getElementById("pat").appendChild(div);
+                }             
             }
     }
 
