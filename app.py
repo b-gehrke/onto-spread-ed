@@ -503,7 +503,7 @@ class OntologyDataStore:
             for id in allIDS:   
                 if id is not None:         
                     if classId == id:
-                        print("GOT A MATCH: ", classId)
+                        # print("GOT A MATCH: ", classId)
                         label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
                         # print("label for this MATCH is: ", label)
                         iri = self.releases[repo].get_iri_for_label(label)
@@ -511,12 +511,12 @@ class OntologyDataStore:
                         if self.releases[repo].get_annotation(classIri, DEFN) is not None:             
                             definition = self.releases[repo].get_annotation(classIri, DEFN).replace(",", "").replace("'", "").replace("\"", "") #.replace("&", "and").replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")    
                             # definition = self.releases[repo].get_annotation(classIri, app.config['DEFN']) 
-                            print("definition for this MATCH is: ", definition)
+                            # print("definition for this MATCH is: ", definition)
                         else:
                             definition = ""
                         if self.releases[repo].get_annotation(classIri, SYN) is not None:
-                            synonyms = self.releases[repo].get_annotation(classIri, SYN).replace(",", "") #.replace("&", "and") #.replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")
-                            print("synonym for this MATCH is: ", synonyms)
+                            synonyms = self.releases[repo].get_annotation(classIri, SYN).replace(",", "").replace("'", "").replace("\"", "") #.replace("&", "and") #.replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")
+                            # print("synonym for this MATCH is: ", synonyms)
                         else:
                             synonyms = ""
                         entries.append({
@@ -1221,12 +1221,12 @@ def openPat():
             allIDS = ontodb.getIDsFromSheet(repo, table)
             #todo: do we need to do above twice? 
         
-        print("allIDS: ", allIDS)
+        # print("allIDS: ", allIDS)
         #remove duplicates from allIDS: 
         allIDS = list(dict.fromkeys(allIDS))
         
         allData = ontodb.getMetaData(repo, allIDS)  
-        print("allData: ", allData) 
+        # print("allData: ", allData) 
         # print("dotStr is: ", dotStr)
         return render_template("pat.html", repo=repo, all_ids=allIDS, all_data=allData) #todo: PAT.html
 
@@ -1250,13 +1250,13 @@ def openPatAcrossSheets():
         ontodb.parseRelease(repo)
         #todo: do we need to support more than one repo at a time here?
         allIDS = ontodb.getRelatedIDs(repo,idList)
-        print("allIDS: ", allIDS)
+        # print("allIDS: ", allIDS)
         #remove duplicates from allIDS: 
         allIDS = list(dict.fromkeys(allIDS))
 
         #todo: all experimental from here: 
         allData = ontodb.getMetaData(repo, allIDS)  
-        print("TEST allData: ", allData)
+        # print("TEST allData: ", allData)
 
         # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
         return render_template("pat.html", repo=repo, all_ids=allIDS, all_data=allData) #todo: PAT.html
