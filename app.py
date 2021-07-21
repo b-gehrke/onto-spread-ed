@@ -1,6 +1,6 @@
 # Copyright 2018 Google LLC
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the "License")
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -486,51 +486,45 @@ class OntologyDataStore:
 
     #todo: get labels, definitions, synonyms to go with ID's here:
     #need to create a dictionary and add all info to it, in the relevant place
-    def getMetaData(self, repo, allIDS):
+    def getMetaData(self, repo, allIDS):                    
         DEFN = "http://purl.obolibrary.org/obo/IAO_0000115"
         SYN = "http://purl.obolibrary.org/obo/IAO_0000118"
 
-        # print("getting metadata from: ", str(allIDS[0]))
-
-        # axioms = self.releases[repo].get_axioms()
-
-        # print("axioms: ", axioms[1:10])
-
-        # id = "ADDICTO:0000308" #test
-        # id = allIDS[0] #test
-
-        label = ""        
-        # allDetails = {} #dictionary to hold ids, labels, definitions and synonyms
+        label = "" 
+        definition = ""
+        synonyms = ""
         entries = []
 
         
         all_labels = set()
         for classIri in self.releases[repo].get_classes():
             classId = self.releases[repo].get_id_for_iri(classIri).replace(":", "_")
-            for id in allIDS:            
-                if classId == id:
-                    print("GOT A MATCH: ", classId)
-                    label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
-                    # print("label for this MATCH is: ", label)
-                    iri = self.releases[repo].get_iri_for_label(label)
-                    #todo: need to get definition and synonyms still below:
-                    definition = self.releases[repo].get_annotation(classIri, DEFN).replace(",", "")  
-                    # definition = self.releases[repo].get_annotation(classIri, app.config['DEFN']) 
-                    print("definition for this MATCH is: ", definition)
-                    synonyms = self.releases[repo].get_annotation(classIri, SYN) 
-                    print("synonym for this MATCH is: ", synonyms)
-                    entries.append({
-                        "id": id,
-                        "label": label, 
-                        "synonyms": synonyms,
-                        "definition": definition                        
-                    })
-                # ttt = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL'])
-            # if classIri == entryIri:
-            # all_labels.add(self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']))
-        # print("all labels TEST:", list(dict.fromkeys(all_labels)))
-        # entryIri = self.releases[repo].get_iri_for_id(id)
-        # label = self.releases[repo].get_annotation(entryIri, app.config['RDFSLABEL'])
+            #todo: check for null ID's!
+            for id in allIDS:   
+                if id is not None:         
+                    if classId == id:
+                        print("GOT A MATCH: ", classId)
+                        label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
+                        # print("label for this MATCH is: ", label)
+                        iri = self.releases[repo].get_iri_for_label(label)
+                        #todo: need to get definition and synonyms still below:
+                        if self.releases[repo].get_annotation(classIri, DEFN) is not None:             
+                            definition = self.releases[repo].get_annotation(classIri, DEFN).replace(",", "") #.replace("&", "and").replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")    
+                            # definition = self.releases[repo].get_annotation(classIri, app.config['DEFN']) 
+                            print("definition for this MATCH is: ", definition)
+                        else:
+                            definition = ""
+                        if self.releases[repo].get_annotation(classIri, SYN) is not None:
+                            synonyms = self.releases[repo].get_annotation(classIri, SYN).replace(",", "") #.replace("&", "and") #.replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")
+                            print("synonym for this MATCH is: ", synonyms)
+                        else:
+                            synonyms = ""
+                        entries.append({
+                            "id": id,
+                            "label": label, 
+                            "synonyms": synonyms,
+                            "definition": definition,                      
+                        })
         return (entries)
 
 
@@ -1262,9 +1256,8 @@ def openPatAcrossSheets():
 
         #todo: all experimental from here: 
         allData = ontodb.getMetaData(repo, allIDS)  
-        print("TEST allData: ", allData)    
+        print("TEST allData: ", allData)
 
-        
         # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
         return render_template("pat.html", repo=repo, all_ids=allIDS, all_data=allData) #todo: PAT.html
 
