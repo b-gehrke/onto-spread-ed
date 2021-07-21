@@ -488,32 +488,39 @@ class OntologyDataStore:
     #need to create a dictionary and add all info to it, in the relevant place
     def getMetaData(self, repo, allIDS):
         print("getting metadata from: ", str(allIDS[0]))
-        # id = "ADDICTO:0000308"
-        label = ""
-        id = allIDS[0]
-        # id = ' '.join(str(allIDS[0])) #test one only
-        # entryIri = self.releases[repo].get_iri_for_id(id)
+        # id = "ADDICTO:0000308" #test
+        # id = allIDS[0] #test
+
+        label = ""        
+        # allDetails = {} #dictionary to hold ids, labels, definitions and synonyms
+        entries = []
+
         
         all_labels = set()
         for classIri in self.releases[repo].get_classes():
-            classId = self.releases[repo].get_id_for_iri(classIri).replace(":", "_")            
-            if classId == id:
-                print("GOT A MATCH: ", classId)
-                label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
-                print("label for this MATCH is: ", label)
+            classId = self.releases[repo].get_id_for_iri(classIri).replace(":", "_")
+            for id in allIDS:            
+                if classId == id:
+                    print("GOT A MATCH: ", classId)
+                    label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
+                    print("label for this MATCH is: ", label)
 
-                #todo: need to get definition and synonyms still below: 
-                definition = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
-                print("definition for this MATCH is: ", definition)
-                synonyms = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
-                print("synonym for this MATCH is: ", synonyms)
+                    #todo: need to get definition and synonyms still below: 
+                    definition = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
+                    print("definition for this MATCH is: ", definition)
+                    synonyms = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #no
+                    print("synonym for this MATCH is: ", synonyms)
+                    entries.append({
+                        "id": id,
+                        "label": label
+                    })
                 # ttt = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL'])
             # if classIri == entryIri:
             # all_labels.add(self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']))
         # print("all labels TEST:", list(dict.fromkeys(all_labels)))
         # entryIri = self.releases[repo].get_iri_for_id(id)
         # label = self.releases[repo].get_annotation(entryIri, app.config['RDFSLABEL'])
-        return (label)
+        return (entries)
 
 
 
@@ -1243,7 +1250,7 @@ def openPatAcrossSheets():
 
         #todo: all experimental from here: 
         allData = ontodb.getMetaData(repo, allIDS)  
-        print("TEST got a label: ", allData)    
+        print("TEST allData: ", allData)    
 
         
         # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
