@@ -1227,7 +1227,7 @@ def openPat():
         allIDS = list(dict.fromkeys(allIDS))
         
         allData = ontodb.getMetaData(repo, allIDS)  
-        print("TEST allData: ", allData) 
+        print("allData: ", allData) 
         # print("dotStr is: ", dotStr)
         return render_template("pat.html", repo=repo, all_ids=allIDS, all_data=allData) #todo: PAT.html
 
