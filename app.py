@@ -44,7 +44,7 @@ from urllib.request import urlopen
 import threading
 
 import whoosh
-from whoosh.qparser import MultifieldParser
+from whoosh.qparser import MultifieldParser,QueryParser
 
 from datetime import datetime
 
@@ -214,22 +214,25 @@ class SpreadsheetSearcher:
 
     def getNextId(self,repo_name):
         self.threadLock.acquire()
-        next_id_obj = NextId.query.filter_by(repo_name=repo_name).first()
-        if next_id_obj is None:  
-            print("Adding a new nextid")
-            next_id_obj = NextId()
-            next_id_obj.repo_name = repo_name
-            next_id_obj.next_id = 955 if repo_name=="AddictO" else 50000
-            db_session.add(next_id_obj)
-            db_session.commit()
+        self.storage.open_from_bucket()
+        ix = self.storage.open_index()
 
-        next_id = next_id_obj.next_id
-        next_id_updated = next_id+1
-        next_id_obj.next_id = next_id_updated
-        db_session.commit()
+        nextId = 0
+
+        mparser = QueryParser("class_id",
+                              schema=ix.schema)
+
+        query = mparser.parse(repo_name.upper()+"*")
+
+        with ix.searcher() as searcher:
+            results = searcher.search(query, sortedby="class_id",reverse=True)
+            tophit = results[0]
+            nextId = int(tophit['class_id'].split(":")[1] )+1
+
+        ix.close()
 
         self.threadLock.release()
-        return (next_id)
+        return (nextId)
 
 
 searcher = SpreadsheetSearcher()
@@ -360,7 +363,7 @@ class OntologyDataStore:
                                                                self.label_to_id[relValue.strip()],
                                                                color=rcolour,
                                                                label=rel_name)
- 
+
  # todo: re-factoring the following:  
     
     # getIDsFromSheet - related ID's from whole sheet
@@ -388,12 +391,12 @@ class OntologyDataStore:
                     if entryParent in self.label_to_id:
                         ids.append(self.label_to_id[entryParent])
         return (ids)
-    
-    
+
+     
     def getIDsFromSelection(self, repo, data, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
         print(selectedIds)
-        ids = [] 
+        ids = []
         for id in selectedIds:
             print("looking at id: ", id)
             entry = data[id]
@@ -409,21 +412,21 @@ class OntologyDataStore:
                         if entryParent in self.label_to_id:
                             ids.append(self.label_to_id[entryParent])
                     entryIri = self.releases[repo].get_iri_for_id(entry['ID'])
-                    if entryIri:
-                        descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
-                        for d in descs:
-                            ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
-                    if self.graphs[repo]:
-                        graph_descs = None
-                        try:
+            if entryIri:
+                descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
+                for d in descs:
+                    ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
+            if self.graphs[repo]:
+                graph_descs = None
+                try:
                             graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo],entry['ID'].replace(":", "_"))
-                        except networkx.exception.NetworkXError:
+                except networkx.exception.NetworkXError:
                             print("networkx exception error in getIDsFromSelection", id)
-                        
-                        if graph_descs is not None:
-                            for g in graph_descs:
-                                if g not in ids:
-                                    ids.append(g)                        
+
+                if graph_descs is not None:
+                    for g in graph_descs:
+                        if g not in ids:
+                            ids.append(g)
         return (ids)
 
     def getRelatedIDs(self, repo, selectedIds):
@@ -435,30 +438,30 @@ class OntologyDataStore:
             print("Got IRI",entryIri,"for ID",id)
             #todo: get label, definitions, synonyms here?
 
-            if entryIri:
-                descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
-                for d in descs:
-                    ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
+                    if entryIri:
+                        descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
+                    for d in descs:
+                        ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                     #todo: get label, definitions, synonyms here?
                     
                 superclasses = self.releases[repo].get_superclasses(entryIri)
                 # superclasses = pyhornedowl.get_superclasses(self.releases[repo], entryIri) 
                 for s in superclasses:
                     ids.append(self.releases[repo].get_id_for_iri(s).replace(":", "_"))
-            if self.graphs[repo]:
+                    if self.graphs[repo]:
                 graph_descs = None
-                try:
+                        try:
                     print("repo is: ", repo, " id: ", id)
                     graph_descs = networkx.algorithms.dag.descendants(self.graphs[repo], id.replace(":", "_"))
                     print("Got descs from graph",graph_descs)
                     print(type(graph_descs))
-                except networkx.exception.NetworkXError:
+                        except networkx.exception.NetworkXError:
                     print("got networkx exception in getRelatedIDs ", id)
 
                 if graph_descs is not None:
-                    for g in graph_descs:
-                        if g not in ids:
-                            ids.append(g)
+                        for g in graph_descs:
+                            if g not in ids:
+                                ids.append(g)
         return (ids)
 
     def getDotForSheetGraph(self, repo, data):
@@ -482,7 +485,7 @@ class OntologyDataStore:
         # Then get the subgraph as usual
         subgraph = self.graphs[repo].subgraph(ids)
         P = networkx.nx_pydot.to_pydot(subgraph)
-        return (P)   
+        return (P)
 
     #todo: get labels, definitions, synonyms to go with ID's here:
     #need to create a dictionary and add all info to it, in the relevant place
@@ -1118,7 +1121,6 @@ def openVisualiseAcrossSheets():
         repo = request.form.get("repo") 
         print("repo is ", repo)
         idList = idString.split()
-        print("idList is: ", idList)
         # for i in idList:
         #     print("i is: ", i)
         # indices = json.loads(request.form.get("indices"))
