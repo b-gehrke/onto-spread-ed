@@ -1,6 +1,6 @@
 # Copyright 2018 Google LLC
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the "License")
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -45,7 +45,7 @@ from urllib.request import urlopen
 import threading
 
 import whoosh
-from whoosh.qparser import MultifieldParser
+from whoosh.qparser import MultifieldParser,QueryParser
 
 from datetime import datetime
 
@@ -223,22 +223,25 @@ class SpreadsheetSearcher:
 
     def getNextId(self,repo_name):
         self.threadLock.acquire()
-        next_id_obj = NextId.query.filter_by(repo_name=repo_name).first()
-        if next_id_obj is None:  
-            print("Adding a new nextid")
-            next_id_obj = NextId()
-            next_id_obj.repo_name = repo_name
-            next_id_obj.next_id = 955 if repo_name=="AddictO" else 50000
-            db_session.add(next_id_obj)
-            db_session.commit()
+        self.storage.open_from_bucket()
+        ix = self.storage.open_index()
 
-        next_id = next_id_obj.next_id
-        next_id_updated = next_id+1
-        next_id_obj.next_id = next_id_updated
-        db_session.commit()
+        nextId = 0
+
+        mparser = QueryParser("class_id",
+                              schema=ix.schema)
+
+        query = mparser.parse(repo_name.upper()+"*")
+
+        with ix.searcher() as searcher:
+            results = searcher.search(query, sortedby="class_id",reverse=True)
+            tophit = results[0]
+            nextId = int(tophit['class_id'].split(":")[1] )+1
+
+        ix.close()
 
         self.threadLock.release()
-        return (next_id)
+        return (nextId)
 
 
 searcher = SpreadsheetSearcher()
@@ -280,19 +283,6 @@ class OntologyDataStore:
                 classId = self.releases[repo].get_id_for_iri(classIri)
                 if classId:
                     classId = classId.replace(":","_")
-                    # test: - todo: delete this test
-                    # print(classId)
-                    if "466" in classId:
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                        print(classId, " is here, found it no problem")
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-                    if "463" in classId:
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                        print(classId, " is here, why not found?")
-                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                    # end test 
-
                     # is it already in the graph?
                     if classId not in self.graphs[repo].nodes:
                         label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL'])
@@ -450,16 +440,19 @@ class OntologyDataStore:
 
     def getRelatedIDs(self, repo, selectedIds):
         # Add all descendents of the selected IDs, the IDs and their parents.
-        #todo: do we need to check for parents here also? HOW?
         ids = []
         for id in selectedIds:
             ids.append(id.replace(":","_"))
             entryIri = self.releases[repo].get_iri_for_id(id)
             print("Got IRI",entryIri,"for ID",id)
+            #todo: get label, definitions, synonyms here?
+
             if entryIri:
                 descs = pyhornedowl.get_descendants(self.releases[repo],entryIri)
                 for d in descs:
                     ids.append(self.releases[repo].get_id_for_iri(d).replace(":","_"))
+                    #todo: get label, definitions, synonyms here?
+                    
                 superclasses = self.releases[repo].get_superclasses(entryIri)
                 # superclasses = pyhornedowl.get_superclasses(self.releases[repo], entryIri) 
                 for s in superclasses:
@@ -502,6 +495,50 @@ class OntologyDataStore:
         subgraph = self.graphs[repo].subgraph(ids)
         P = networkx.nx_pydot.to_pydot(subgraph)
         return (P)   
+
+    #todo: get labels, definitions, synonyms to go with ID's here:
+    #need to create a dictionary and add all info to it, in the relevant place
+    def getMetaData(self, repo, allIDS):                    
+        DEFN = "http://purl.obolibrary.org/obo/IAO_0000115"
+        SYN = "http://purl.obolibrary.org/obo/IAO_0000118"
+
+        label = "" 
+        definition = ""
+        synonyms = ""
+        entries = []
+
+        
+        all_labels = set()
+        for classIri in self.releases[repo].get_classes():
+            classId = self.releases[repo].get_id_for_iri(classIri).replace(":", "_")
+            #todo: check for null ID's!
+            for id in allIDS:   
+                if id is not None:         
+                    if classId == id:
+                        # print("GOT A MATCH: ", classId)
+                        label = self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']) #yes
+                        # print("label for this MATCH is: ", label)
+                        iri = self.releases[repo].get_iri_for_label(label)
+                        #todo: need to get definition and synonyms still below:
+                        if self.releases[repo].get_annotation(classIri, DEFN) is not None:             
+                            definition = self.releases[repo].get_annotation(classIri, DEFN).replace(",", "").replace("'", "").replace("\"", "") #.replace("&", "and").replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")    
+                            # definition = self.releases[repo].get_annotation(classIri, app.config['DEFN']) 
+                            # print("definition for this MATCH is: ", definition)
+                        else:
+                            definition = ""
+                        if self.releases[repo].get_annotation(classIri, SYN) is not None:
+                            synonyms = self.releases[repo].get_annotation(classIri, SYN).replace(",", "").replace("'", "").replace("\"", "") #.replace("&", "and") #.replace(":", " ").replace("/", " ").replace(".", " ").replace("-", " ").replace("(", " ").replace(")", " ")
+                            # print("synonym for this MATCH is: ", synonyms)
+                        else:
+                            synonyms = ""
+                        entries.append({
+                            "id": id,
+                            "label": label, 
+                            "synonyms": synonyms,
+                            "definition": definition,                      
+                        })
+        return (entries)
+
 
 
 ontodb = OntologyDataStore()
@@ -1093,6 +1130,7 @@ def openVisualiseAcrossSheets():
         repo = request.form.get("repo") 
         print("repo is ", repo)
         idList = idString.split()
+        print("idList is: ", idList)
         # for i in idList:
         #     print("i is: ", i)
         # indices = json.loads(request.form.get("indices"))
@@ -1147,6 +1185,10 @@ def openVisualise():
         if len(indices) > 0:
             ontodb.parseSheetData(repo,table)
             dotStr = ontodb.getDotForSelection(repo,table,indices).to_string()
+            # print("first dotstr is: ", dotStr)
+            #todo: this is a hack: works fine the second time? do it twice!
+            ontodb.parseSheetData(repo,table)
+            dotStr = ontodb.getDotForSelection(repo,table,indices).to_string()
         else:
             ontodb.parseSheetData(repo,table)
             dotStr = ontodb.getDotForSheetGraph(repo,table).to_string()
@@ -1192,13 +1234,14 @@ def openPat():
             allIDS = ontodb.getIDsFromSheet(repo, table)
             #todo: do we need to do above twice? 
         
-        print("allIDS: ", allIDS)
+        # print("allIDS: ", allIDS)
         #remove duplicates from allIDS: 
         allIDS = list(dict.fromkeys(allIDS))
         
-
+        allData = ontodb.getMetaData(repo, allIDS)  
+        # print("allData: ", allData) 
         # print("dotStr is: ", dotStr)
-        return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
+        return render_template("pat.html", repo=repo, all_ids=allIDS, all_data=allData) #todo: PAT.html
 
     return ("Only POST allowed.")
 
@@ -1212,7 +1255,7 @@ def openPatAcrossSheets():
         repo = request.form.get("repo") 
         print("repo is ", repo)
         idList = idString.split()
-        # print("idList: ", idList)
+        print("idList: ", idList)
         # for i in idList:
         #     print("i is: ", i)
         # indices = json.loads(request.form.get("indices"))
@@ -1220,11 +1263,16 @@ def openPatAcrossSheets():
         ontodb.parseRelease(repo)
         #todo: do we need to support more than one repo at a time here?
         allIDS = ontodb.getRelatedIDs(repo,idList)
-        print("allIDS: ", allIDS)
+        # print("allIDS: ", allIDS)
         #remove duplicates from allIDS: 
         allIDS = list(dict.fromkeys(allIDS))
+
+        #todo: all experimental from here: 
+        allData = ontodb.getMetaData(repo, allIDS)  
+        # print("TEST allData: ", allData)
+
         # dotStr = ontodb.getDotForIDs(repo,idList).to_string()
-        return render_template("pat.html", repo=repo, all_ids=allIDS) #todo: PAT.html
+        return render_template("pat.html", repo=repo, all_ids=allIDS, all_data=allData) #todo: PAT.html
 
     return ("Only POST allowed.")
 
