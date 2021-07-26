@@ -1180,6 +1180,10 @@ def openVisualise():
         if len(indices) > 0:
             ontodb.parseSheetData(repo,table)
             dotStr = ontodb.getDotForSelection(repo,table,indices).to_string()
+            # print("first dotstr is: ", dotStr)
+            #todo: this is a hack: works fine the second time? do it twice!
+            ontodb.parseSheetData(repo,table)
+            dotStr = ontodb.getDotForSelection(repo,table,indices).to_string()
         else:
             ontodb.parseSheetData(repo,table)
             dotStr = ontodb.getDotForSheetGraph(repo,table).to_string()
