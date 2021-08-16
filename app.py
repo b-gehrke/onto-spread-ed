@@ -34,6 +34,10 @@ from flask import render_template_string, jsonify, Response
 from flask_github import GitHub
 from flask_cors import CORS #enable cross origin request?
 from flask_caching import Cache
+#database: 
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
 
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -107,9 +111,38 @@ cors = CORS(app, resources={
 app.config.from_object('config')
 cache = Cache(app) #caching
 cache.set("latestID",0) #initialise caching
-print("cache initialised")
+print("cache initialised") #todo: remove flask_caching when firebase is working
 
 github = GitHub(app)
+
+#database:
+# Use the application default credentials
+cred = credentials.ApplicationDefault()
+firebase_admin.initialize_app(cred, {
+  'projectId': "test2-322719", #todo: this shouldn't be hard coded here, right? 
+})
+
+db = firestore.client()
+print("GETTING DOCUMENTS FROM FIRESTORE NOW")
+fields = db.collection('latest_id').document('fME9stB1VaT0VcqlgVnJ').get().to_dict()
+print(fields)
+print("id is: ", fields['id'])
+
+latestID = fields['id'] #todo: this instead of flask_caching
+
+    
+def get_latest_id():
+    fields = db.collection('latest_id').document('fME9stB1VaT0VcqlgVnJ').get().to_dict()
+    print("new id is: ", fields['id'])
+    return fields['id']
+    
+def update_latest_id(id):
+    doc_ref = db.collection('latest_id').document('fME9stB1VaT0VcqlgVnJ')
+    doc_ref.update({
+        u'id': id
+    })   
+    print("updated id to ", id)
+
 
 
 # Implementation of Google Cloud Storage for index
@@ -240,18 +273,22 @@ class SpreadsheetSearcher:
         with ix.searcher() as searcher:
             results = searcher.search(query, sortedby="class_id",reverse=True)
             tophit = results[0]
-            mostRecentID = cache.get("latestID") # check latest ID 
+            mostRecentID = get_latest_id()
+            # mostRecentID = cache.get("latestID") # check latest ID 
             if mostRecentID is None: # error check no cache set
                 mostRecentID = 0
                 print("error latestID was None!")
-                cache.set("latestID", 0)
+                update_latest_id(0)
+                # cache.set("latestID", 0)
             nextId = int(tophit['class_id'].split(":")[1] )+1
 
             # check nextId against cached most recent id:
             if not(nextId > mostRecentID):
                 print("cached version is higher: ", mostRecentID, " > ", nextId)
-                nextId = cache.get("latestID")+1                
-            cache.set("latestID", nextId)
+                nextId = get_latest_id()+1
+                # nextId = cache.get("latestID")+1                
+            update_latest_id(nextId)
+            # cache.set("latestID", nextId)
             
 
         ix.close()

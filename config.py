@@ -5,7 +5,7 @@ from google.cloud import secretmanager
 # Connect to Google cloud storage client
 from google.cloud import storage
 
-DEBUG = True
+DEBUG = False
 
 #flask_caching:
 CACHE_TYPE = "SimpleCache"
@@ -57,19 +57,20 @@ if os.environ.get("FLASK_ENV")=='development':
     os.environ['GOOGLE_APPLICATION_CREDENTIALS']='ontospreaded.json'
     # Cloud storage - for the index search
     storage_client = storage.Client()
-    bucket = storage_client.get_bucket('index-spread-ed-dev')
+    bucket = storage_client.get_bucket('index-spread-ed-dev2')
 
 else:
-    REPOSITORIES = {"AddictO": "addicto-org/addiction-ontology", "BCIO": "HumanBehaviourChangeProject/ontologies"}
+    REPOSITORIES = {"AddictO": "jannahastings/addiction-ontology", "BCIO": "jannahastings/ontologies"}
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'ontospreaded.json'
     # Cloud storage - for the index search
     storage_client = storage.Client()
-    bucket = storage_client.get_bucket('index-spread-ed')
+    bucket = storage_client.get_bucket('index-spread-ed-dev2')
 
     # Create the Secret Manager client.
     client = secretmanager.SecretManagerServiceClient()
 
-    project_id = "onto-spread-ed"
+    project_id = "638648797663" 
+    os.environ['PROJECT_ID'] = project_id
     client_id = "GITHUB_CLIENT_ID"
     # Build the resource name of the secret version.
     name = f"projects/{project_id}/secrets/{client_id}/versions/latest"
