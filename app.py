@@ -1329,10 +1329,6 @@ def openVisualiseAcrossSheets():
 
 
 # api: 
-@app.route('/api/get-json')
-# @verify_logged_in #how to check this?
-def hello():
-  return jsonify(hello='world') # Returns HTTP Response with {"hello": "world"}
 
 @app.route('/api/openVisualiseAcrossSheets', methods=['POST'])
 # @verify_logged_in # not enabled for /api/
@@ -1445,6 +1441,7 @@ def visualise(repo, sheet):
 @app.route('/openPat', methods=['POST'])
 @verify_logged_in
 def openPat():
+    filter = ""
     if request.method == "POST":
         repo = request.form.get("repo")
         # print("repo is ", repo)
@@ -1459,11 +1456,11 @@ def openPat():
             ontodb.parseRelease(repo)
         if len(indices) > 0: #selection
             # ontodb.parseSheetData(repo,table)
-            allIDS = ontodb.getIDsFromSelection(repo,table,indices)
+            allIDS = ontodb.getIDsFromSelection(repo,table,indices, filter)
             # print("got allIDS: ", allIDS)
         else: # whole sheet..
             ontodb.parseSheetData(repo,table)
-            allIDS = ontodb.getIDsFromSheet(repo, table)
+            allIDS = ontodb.getIDsFromSheet(repo, table, filter)
             #todo: do we need to do above twice? 
         
         # print("allIDS: ", allIDS)

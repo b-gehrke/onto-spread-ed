@@ -34,9 +34,15 @@
             <button id=visualise-sheet class="btn btn-outline-success btn-sm"><i class="fas fa-project-diagram"
                     style="display: none"></i>
                 Visualise sheet</button>
+            <button id=extract-ontology-all class="btn btn-outline-success btn-sm" style="display: none"><i
+                class="fas fa-search"></i>
+                Extract all ontology content</button>
             <button id=visualise-selection class="btn btn-outline-success btn-sm" style="display: none"><i
                     class="fab fa-uncharted"></i>
                 Visualise selection</button>
+            <button id=extract-ontology class="btn btn-outline-success btn-sm" style="display: none"><i
+                class="fas fa-search"></i>
+                Extract selected ontology content</button>
             <button id=generate-identifier class="btn btn-outline-dark btn-sm" style="display: none"><i
                     class="fas fa-marker"></i>
                 Generate identifier</button>
@@ -1109,6 +1115,7 @@
             if (data['ID'] === undefined) { //for tables without ID
             } else {
                 $('#visualise-selection').show(); //only for tables with ID column
+                $('#extract-ontology').show();
             }
             if (data[curation_status] === undefined) { //for tables without curation_status
                 //don't show some buttons if in a table where they are not needed
@@ -1131,6 +1138,7 @@
                 $('#ask-for-review').hide();
                 $('#reviewed').hide();
                 $('#visualise-selection').hide();
+                $('#extract-ontology').hide();
             }
             //re-do styling
             if (data[curation_status] === undefined) { //for tables without curation_status
@@ -1167,6 +1175,7 @@
                 $('#ask-for-review').hide();
                 $('#reviewed').hide();
                 $('#visualise-selection').hide();
+                $('#extract-ontology').hide();
                 $('#generate-identifier').hide();
             } else {
                 $('#delete-rows').show();
@@ -1178,6 +1187,7 @@
                     if (rowData['ID'] === undefined) { //for tables without ID
                     } else {
                         $('#visualise-selection').show(); //only for tables with ID column
+                        $('#extract-ontology').show();
                         if (rowData['ID'] === null || rowData['ID'].trim() === "") {
                             //has no ID but has Label, Definition and Parent:
                             if (!!rowData['Label'].trim() && !!rowData['Definition'].trim() && !!rowData['Parent'].trim()) {
@@ -1684,12 +1694,14 @@
             $('#reviewed').hide();
             $('#updates').hide();
             $('#visualise-selection').hide();
+            $('#extract-ontology').hide();
             $('#visualise-sheet').hide();
+            $('#extract-ontology-all').hide();
             if (data['ID'] === undefined || data['Curation status'] === undefined) { //for tables without ID or curation status column
-
             } else {
                 if (data['ID'] !== null && data['Curation status'] !== null) {
                     $('#visualise-sheet').show(); //only for tables with ID
+                    $('#extract-ontology-all').show();
                 }
             }
 
@@ -2160,7 +2172,7 @@
         });
 
         function sendFromModal(filter) {
-            var indices = [];
+        var indices = [];
             //todo: test - trying to add indices for whole table here:
             var selectedRows = table.getRows();
             for (r in selectedRows) {
@@ -2169,44 +2181,44 @@
             indices.sort(function (a, b) { return a - b });
             // console.log(indices);
 
-                window.open('', 'VisualisationWindow');
+        window.open('', 'VisualisationWindow');
 
-                var form = document.createElement("form");
-                form.setAttribute("method", "post");
-                form.setAttribute("action", "/openVisualise");
-                form.setAttribute("target", 'VisualisationWindow');
-                var input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = "sheet";
-                input.value = "{{spreadsheet_name}}";
-                form.appendChild(input);
-                var input2 = document.createElement('input');
-                input2.type = 'hidden';
-                input2.name = "repo";
-                input2.value = "{{repo_name}}";
-                form.appendChild(input2);
-                var input4 = document.createElement('input');
-                input4.type = 'hidden';
-                input4.name = "table";
-                input4.value = JSON.stringify(table.getData());
-                form.appendChild(input4);
-                var input5 = document.createElement('input');
-                input5.type = 'hidden';
-                input5.name = "indices";
-                input5.value = JSON.stringify(indices);
-                form.appendChild(input5);
-                var input6 = document.createElement('input');
-                input6.type = 'hidden';
-                input6.name = "filter";
-                //test:
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", "/openVisualise");
+        form.setAttribute("target", 'VisualisationWindow');
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = "sheet";
+        input.value = "{{spreadsheet_name}}";
+        form.appendChild(input);
+        var input2 = document.createElement('input');
+        input2.type = 'hidden';
+        input2.name = "repo";
+        input2.value = "{{repo_name}}";
+        form.appendChild(input2);
+        var input4 = document.createElement('input');
+        input4.type = 'hidden';
+        input4.name = "table";
+        input4.value = JSON.stringify(table.getData());
+        form.appendChild(input4);
+        var input5 = document.createElement('input');
+        input5.type = 'hidden';
+        input5.name = "indices";
+        input5.value = JSON.stringify(indices);
+        form.appendChild(input5);
+        var input6 = document.createElement('input');
+        input6.type = 'hidden';
+        input6.name = "filter";
+        //test:
                 // var filter = ["External", "Proposed"];
                 // var filter = ""; //ok we can set this here!
-                input6.value = JSON.stringify(filter);
-                form.appendChild(input6);
-                document.body.appendChild(form);
-                form.target = 'VisualisationWindow';
-                form.submit();
-                document.body.removeChild(form);
+        input6.value = JSON.stringify(filter);
+        form.appendChild(input6);
+        document.body.appendChild(form);
+        form.target = 'VisualisationWindow';
+        form.submit();
+        document.body.removeChild(form);
             }
     });
 
@@ -2242,41 +2254,41 @@
       
         function sendFromModal2(filter) {
             console.log("sendFromModal2");
-            var selectedData = table.getSelectedData();
-            var selectedRows = table.getSelectedRows();
-            var indices = [];
+        var selectedData = table.getSelectedData();
+        var selectedRows = table.getSelectedRows();
+        var indices = [];
 
-            for (r in selectedRows) {
-                indices.push(selectedRows[r].getIndex());
-            }
-            indices.sort(function (a, b) { return a - b });
+        for (r in selectedRows) {
+            indices.push(selectedRows[r].getIndex());
+        }
+        indices.sort(function (a, b) { return a - b });
             // console.log(indices);
-            window.open('', 'VisualisationWindow');
+        window.open('', 'VisualisationWindow');
 
-            var form = document.createElement("form");
-            form.setAttribute("method", "post");
-            form.setAttribute("action", "/openVisualise");
-            form.setAttribute("target", 'VisualisationWindow');
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = "sheet";
-            input.value = "{{spreadsheet_name}}";
-            form.appendChild(input);
-            var input2 = document.createElement('input');
-            input2.type = 'hidden';
-            input2.name = "repo";
-            input2.value = "{{repo_name}}";
-            form.appendChild(input2);
-            var input4 = document.createElement('input');
-            input4.type = 'hidden';
-            input4.name = "table";
-            input4.value = JSON.stringify(table.getData());
-            form.appendChild(input4);
-            var input5 = document.createElement('input');
-            input5.type = 'hidden';
-            input5.name = "indices";
-            input5.value = JSON.stringify(indices);
-            form.appendChild(input5);
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", "/openVisualise");
+        form.setAttribute("target", 'VisualisationWindow');
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = "sheet";
+        input.value = "{{spreadsheet_name}}";
+        form.appendChild(input);
+        var input2 = document.createElement('input');
+        input2.type = 'hidden';
+        input2.name = "repo";
+        input2.value = "{{repo_name}}";
+        form.appendChild(input2);
+        var input4 = document.createElement('input');
+        input4.type = 'hidden';
+        input4.name = "table";
+        input4.value = JSON.stringify(table.getData());
+        form.appendChild(input4);
+        var input5 = document.createElement('input');
+        input5.type = 'hidden';
+        input5.name = "indices";
+        input5.value = JSON.stringify(indices);
+        form.appendChild(input5);
             var input6 = document.createElement('input');
             input6.type = 'hidden';
             input6.name = "filter";
@@ -2285,11 +2297,11 @@
             // var filter = ""; //ok we can set this here!
             input6.value = JSON.stringify(filter);
             form.appendChild(input6);
-            document.body.appendChild(form);
-            form.target = 'VisualisationWindow';
-            form.submit();
+        document.body.appendChild(form);
+        form.target = 'VisualisationWindow';
+        form.submit();
             console.log("form submitted");
-            document.body.removeChild(form);                                            
+        document.body.removeChild(form);
       }
     });
 
