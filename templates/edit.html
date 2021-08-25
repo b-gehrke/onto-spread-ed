@@ -2305,6 +2305,89 @@
       }
     });
 
+    $("#extract-ontology-all").click(function () {
+        console.log("extract ontology all clicked")
+        var indices = [];
+        var selectedRows = table.getRows();
+            for (r in selectedRows) {
+                indices.push(selectedRows[r].getIndex());
+            }
+            indices.sort(function (a, b) { return a - b });
+            // console.log(indices);
+        window.open('', 'PatWindow');
+
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", "/openPat");
+        form.setAttribute("target", 'PatWindow');
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = "sheet";
+        input.value = "{{spreadsheet_name}}";
+        form.appendChild(input);
+        var input2 = document.createElement('input');
+        input2.type = 'hidden';
+        input2.name = "repo";
+        input2.value = "{{repo_name}}";
+        form.appendChild(input2);
+        var input4 = document.createElement('input');
+        input4.type = 'hidden';
+        input4.name = "table";
+        input4.value = JSON.stringify(table.getData());
+        form.appendChild(input4);
+        var input5 = document.createElement('input');
+        input5.type = 'hidden';
+        input5.name = "indices";
+        input5.value = JSON.stringify(indices);
+        form.appendChild(input5);
+        document.body.appendChild(form);
+        form.target = 'PatWindow';
+        form.submit();
+        document.body.removeChild(form);
+    });
+
+    $("#extract-ontology").click(function () {
+        console.log("extract ontology clicked")
+        var selectedData = table.getSelectedData();
+        var selectedRows = table.getSelectedRows();
+        var indices = [];
+
+        for (r in selectedRows) {
+            indices.push(selectedRows[r].getIndex());
+        }
+        indices.sort(function (a, b) { return a - b });
+        console.log(indices);
+        window.open('', 'PatWindow');
+
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", "/openPat");
+        form.setAttribute("target", 'PatWindow');
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = "sheet";
+        input.value = "{{spreadsheet_name}}";
+        form.appendChild(input);
+        var input2 = document.createElement('input');
+        input2.type = 'hidden';
+        input2.name = "repo";
+        input2.value = "{{repo_name}}";
+        form.appendChild(input2);
+        var input4 = document.createElement('input');
+        input4.type = 'hidden';
+        input4.name = "table";
+        input4.value = JSON.stringify(table.getData());
+        form.appendChild(input4);
+        var input5 = document.createElement('input');
+        input5.type = 'hidden';
+        input5.name = "indices";
+        input5.value = JSON.stringify(indices);
+        form.appendChild(input5);
+        document.body.appendChild(form);
+        form.target = 'PatWindow';
+        form.submit();
+        document.body.removeChild(form);
+    });
 
     $("#generate-identifier").click(function () {
         // console.log("clicked generate-identifier");
