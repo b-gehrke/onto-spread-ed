@@ -445,6 +445,7 @@ class OntologyDataStore:
     
     def getIDsFromSheet(self, repo, data, filter):
         # list of ids from sheetExternal
+        print("Sheet get IDS here")
         ids = []
         for entry in data:
             if 'Curation status' in entry and str(entry['Curation status']) == "Obsolete": 
@@ -458,6 +459,7 @@ class OntologyDataStore:
                         if 'Parent' in entry:
                             entryParent = re.sub("[\[].*?[\]]", "", str(entry['Parent'])).strip()
                             if entryParent in self.label_to_id:
+                                print("adding parent: ", self.label_to_id[entryParent])
                                 ids.append(self.label_to_id[entryParent])
                         
                         if ":" in entry['ID'] or "_" in entry['ID']:
@@ -465,6 +467,7 @@ class OntologyDataStore:
                             if entryIri:
                                 descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
                                 for d in descs:
+                                    print("adding descendent: ", self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                                     ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                         if self.graphs[repo]:
                             graph_descs = None
@@ -476,6 +479,7 @@ class OntologyDataStore:
                             if graph_descs is not None:
                                 for g in graph_descs:
                                     if g not in ids:
+                                        print("adding graph_desc: ", g)
                                         ids.append(g)  
                 else:
                     if 'ID' in entry and len(entry['ID'])>0:
@@ -507,7 +511,7 @@ class OntologyDataStore:
     
     def getIDsFromSelectionMultiSelect(self, repo, data, selectedIds, filter):
         # Add all descendents of the selected IDs, the IDs and their parents.
-        ids = [] 
+        ids = []
         for id in selectedIds:
             entry = data[id]
             # don't visualise rows which are set to "Obsolete":
@@ -545,6 +549,7 @@ class OntologyDataStore:
 
     def getIDsFromSelection(self, repo, data, selectedIds, filter):
         # Add all descendents of the selected IDs, the IDs and their parents.
+        print("Selection get IDS here")
         ids = [] 
         for id in selectedIds:
             entry = data[id]
@@ -556,16 +561,19 @@ class OntologyDataStore:
                     if str(entry['Curation status']) == filter:
                         if str(entry['ID']) and str(entry['ID']).strip(): #check for none and blank ID's
                             if 'ID' in entry and len(entry['ID']) > 0:
+                                # print("adding ID: ", entry['Label'], entry['ID'].replace(":", "_"))
                                 ids.append(entry['ID'].replace(":", "_"))
                             if 'Parent' in entry:
                                 entryParent = re.sub("[\[].*?[\]]", "", str(entry['Parent'])).strip()                                
                                 if entryParent in self.label_to_id:
+                                    print("adding parent: ", entry['Label'], " ", self.label_to_id[entryParent])
                                     ids.append(self.label_to_id[entryParent])
                             if ":" in entry['ID'] or "_" in entry['ID']:
                                 entryIri = self.releases[repo].get_iri_for_id(entry['ID'].replace("_", ":"))
                                 if entryIri:
                                     descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
                                     for d in descs:
+                                        print("adding desc: ", entry['Label'], " ", self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                                         ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                             if self.graphs[repo]:
                                 graph_descs = None
@@ -577,6 +585,7 @@ class OntologyDataStore:
                                 if graph_descs is not None:
                                     for g in graph_descs:
                                         if g not in ids:
+                                            print("adding g: ", entry['Label'], " ", g)
                                             ids.append(g)  
                 else:
                     if str(entry['ID']) and str(entry['ID']).strip(): #check for none and blank ID's
@@ -1384,8 +1393,9 @@ def openVisualise():
                 filter = "" #default
                 for i in range(0,2):
                     ontodb.parseSheetData(repo,table)
-                    dotStr = ontodb.getDotForSheetGraph(repo,table,filter).to_string()            
-
+                    dotStr = ontodb.getDotForSheetGraph(repo,table,filter).to_string()   
+        print("got dotStr")         
+        # print("dotStr is: ", dotStr)
         return render_template("visualise.html", sheet=sheet, repo=repo, dotStr=dotStr, dotstr_list=dotstr_list, filter=filter)
 
     return ("Only POST allowed.")
