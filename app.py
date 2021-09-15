@@ -566,15 +566,15 @@ class OntologyDataStore:
                             if 'Parent' in entry:
                                 entryParent = re.sub("[\[].*?[\]]", "", str(entry['Parent'])).strip()                                
                                 if entryParent in self.label_to_id:
-                                    print("adding parent: ", entry['Label'], " ", self.label_to_id[entryParent])
-                                    ids.append(self.label_to_id[entryParent])
+                                    # print("adding parent: ", entry['Label'], " ", self.label_to_id[entryParent])
+                                    ids.append(self.label_to_id[entryParent]) 
                             if ":" in entry['ID'] or "_" in entry['ID']:
                                 entryIri = self.releases[repo].get_iri_for_id(entry['ID'].replace("_", ":"))
                                 if entryIri:
                                     descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
                                     for d in descs:
-                                        print("adding desc: ", entry['Label'], " ", self.releases[repo].get_id_for_iri(d).replace(":", "_"))
-                                        ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
+                                        # print("adding desc: ", entry['Label'], " ", self.releases[repo].get_id_for_iri(d).replace(":", "_"))
+                                        ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_")) #todo: desabled for test only
                             if self.graphs[repo]:
                                 graph_descs = None
                                 try:
@@ -585,7 +585,7 @@ class OntologyDataStore:
                                 if graph_descs is not None:
                                     for g in graph_descs:
                                         if g not in ids:
-                                            print("adding g: ", entry['Label'], " ", g)
+                                            # print("adding g: ", entry['Label'], " ", g)
                                             ids.append(g)  
                 else:
                     if str(entry['ID']) and str(entry['ID']).strip(): #check for none and blank ID's
@@ -594,13 +594,14 @@ class OntologyDataStore:
                         if 'Parent' in entry:
                             entryParent = re.sub("[\[].*?[\]]", "", str(entry['Parent'])).strip() 
                             if entryParent in self.label_to_id:
-                                    ids.append(self.label_to_id[entryParent])
+                                ids.append(self.label_to_id[entryParent])
                         if ":" in entry['ID'] or "_" in entry['ID']:
                             entryIri = self.releases[repo].get_iri_for_id(entry['ID'].replace("_", ":"))
                             if entryIri:
                                 descs = pyhornedowl.get_descendants(self.releases[repo], entryIri)
                                 for d in descs:
-                                    ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
+                                    pass
+                                    # ids.append(self.releases[repo].get_id_for_iri(d).replace(":", "_"))
                         if self.graphs[repo]:
                             graph_descs = None
                             try:
