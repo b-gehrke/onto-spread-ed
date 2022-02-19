@@ -171,6 +171,7 @@
                         }
                     }
                     console.log("width: " + canvas.width + ", height: " + canvas.height);
+                    // context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y-img1.height/10, 800, 800);
                     context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, img1.width * scale, img1.height * scale);
                     // DOMURL.revokeObjectURL(url); //no we need url for updates to canvas
 
@@ -181,6 +182,7 @@
 
             });
         } else {
+            // context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, 200, 200);
             context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, img1.width * scale, img1.height * scale);
         }
     }

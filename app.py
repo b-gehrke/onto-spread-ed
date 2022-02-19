@@ -356,7 +356,6 @@ class OntologyDataStore:
             all_labels.add(self.releases[repo].get_annotation(classIri, app.config['RDFSLABEL']))
         return( all_labels )
     
-    #todo: did this work? 
     def getReleaseIDs(self, repo):
         all_IDs = set()
         for classIri in self.releases[repo].get_classes():
@@ -624,6 +623,7 @@ class OntologyDataStore:
                                         if g not in ids:
                                             ids.append(g)  
             except: 
+                print("visualisation problem with: ", id)
                 pass                    
         return (ids)
 
@@ -699,7 +699,8 @@ class OntologyDataStore:
                 ids = OntologyDataStore.getRelatedIDs(self, repo, selectedIds) #todo: do we need to differentiate?
                 subgraphs.append(self.graphs[repo].subgraph(ids))
             #test combine two graphs:
-            F = networkx.compose(subgraphs[0], subgraphs[1])
+            F = networkx.compose_all(subgraphs)
+            # F = networkx.compose(subgraphs[0], subgraphs[1])
             P = networkx.nx_pydot.to_pydot(F)
             return (P)   
         else:              
@@ -1406,6 +1407,7 @@ def apiOpenVisualiseAcrossSheets():
         if len(idList) == 0:
             print("got zero length idList")
             allIds = ontodb.getReleaseIDs(repo)
+            print(allIds)
             idList = []
             for ID in allIds: 
                 if ID is not None and ID != "":
