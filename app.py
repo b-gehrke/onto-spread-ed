@@ -1390,12 +1390,28 @@ def openVisualiseAcrossSheets():
 
     return ("Only POST allowed.")
 
-
 #api:
 
 @app.route('/api/openVisualiseAcrossSheets', methods=['POST'])
 # @verify_logged_in # not enabled for /api/
 def apiOpenVisualiseAcrossSheets():
+    #build data we need for dotStr query (new one!)
+    if request.method == "POST":
+        idString = request.form.get("idList")
+        repo = request.form.get("repo")
+        idList = idString.split()
+        ontodb.parseRelease(repo)
+        dotStr = ontodb.getDotForIDs(repo,idList).to_string()
+        #NOTE: APP_TITLE2 can't be blank - messes up the spacing  
+        APP_TITLE2 = "VISUALISATION" #could model this on calling url here? Or something else..
+        return render_template("visualise.html", sheet="selection", repo=repo, dotStr=dotStr, api=True, APP_TITLE2=APP_TITLE2)
+
+
+#api for onto-vis:
+
+@app.route('/api/openVisualiseAcrossSheetsVis', methods=['POST'])
+# @verify_logged_in # not enabled for /api/
+def apiOpenVisualiseAcrossSheetsVis():
     #build data we need for dotStr query (new one!)
     if request.method == "POST":
         idString = request.form.get("idList")
