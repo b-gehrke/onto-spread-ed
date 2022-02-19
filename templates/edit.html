@@ -2323,6 +2323,16 @@
                 var rowToReplace = table.getRow(replaceRow);
                 var rowDataReplacing = rowToReplace.getData();
                 rowDataReplacing["ID"] = data;
+                
+                //If current status is external, status change to "Proposed"
+                if(rowDataReplacing["Curation status"] == "External"){
+                    rowDataReplacing["Curation status"] = "Proposed"; 
+                    //save "Curation status" column to local storage for backup
+                    cellValue = "Proposed";
+                    rowValue = replaceRow;
+                    columnValue = "Curation status";
+                    updateChanges(cellValue, rowValue, columnValue); 
+                }                
 
                 //save "ID" column to local storage for backup here
                 //{value, row, columnName}
@@ -2330,26 +2340,7 @@
                 cellValue = data;
                 rowValue = replaceRow;//save absolute row position
                 columnValue = "ID"; //column name
-                updateChanges(data, rowValue, columnValue);
-                /*
-                var alreadyChanged = false;
-                //check for previously edited cell, and overwrite if already changed before
-                for (var i = 0; i < changes.length; i++) {
-                    if (rowValue == changes[i]) { //matches row number
-                        if (columnValue == changes[i + 1]) { //matches column name as well
-                            console.log("already edited this field");
-                            changes.splice(i - 1, 3, data, rowValue, columnValue);
-                            alreadyChanged = true;
-                        }
-                    }
-                }
-                if (!alreadyChanged) {
-                    changes.push(data);
-                    changes.push(rowValue);
-                    changes.push(columnValue);
-                    console.log("changes are: " + changes);
-                }
-                */
+                updateChanges(data, rowValue, columnValue);                
 
             });
             backupChanges();
@@ -2418,25 +2409,8 @@
                 cellValue = data[curator];
                 rowValue = row.getPosition();//save absolute row position
                 columnValue = "Curator"; //column name
-                updateChanges(cellValue, rowValue, columnValue); //todo: refactored updateChanges, does it work?
-                /*
-                var alreadyChanged = false;
-                //check for previously edited cell, and overwrite if already changed before
-                for (var i = 0; i < changes.length; i++) {
-                    if (rowValue == changes[i]) { //matches row number
-                        if (columnValue == changes[i + 1]) { //matches column name as well
-                            console.log("already edited this field");
-                            changes.splice(i - 1, 3, data[curator], rowValue, columnValue);
-                            alreadyChanged = true;
-                        }
-                    }
-                }
-                if (!alreadyChanged) {
-                    changes.push(data[curator]);
-                    changes.push(rowValue);
-                    changes.push(columnValue);
-                }
-            */
+                updateChanges(cellValue, rowValue, columnValue); 
+               
             }
         }
 
