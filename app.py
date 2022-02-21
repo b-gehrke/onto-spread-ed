@@ -1439,6 +1439,11 @@ def apiOpenVisualiseAcrossSheetsVis():
         return render_template("visualiseapi.html", sheet="selection", repo=repo, dotStr=dotStr, api=True, APP_TITLE2=APP_TITLE2)
         # return render_template("visualise.html", sheet="selection", repo=repo, dotStr=dotStr, api=True, APP_TITLE2=APP_TITLE2)
 
+# test open svg: todo: not implemented yet.. delete if not used
+@app.route('/openVisualiseSVGVis', methods=['POST'])
+def openVisualiseSVGVis():
+
+    return render_template("svgVis.html")
 
 @app.route('/openVisualise', methods=['POST'])
 @verify_logged_in 
@@ -1609,7 +1614,7 @@ def edit_external(repo_key, folder_path):
                             repo_name = repo_key,
                             folder_path = folder_path,
                             spreadsheets=spreadsheets, #todo: delete, just for test
-                            rows1=json.dumps(rows1),
+                            rows1=json.dumps(rows1), # list of ontologies
                             rows2=json.dumps(rows2),
                             rows3=json.dumps(rows3)
                             )
