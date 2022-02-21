@@ -34,38 +34,9 @@
         top: 170px;
         left: 100px;
     }
-    #viewRawWrapper {
-        position: fixed;
-        width: 500px;
-        top: 170px;
-        left: 300px;
-    }
-
-
-    /* #dropdownMenuButton {
-        position: fixed;
-        width: 260px;
-        top: 160px;
-        left: 300px
-    } */
+   
 </style>
 
-<!-- <h1>VISUALISATIONS</h1> -->
-
-<!-- <div id="wrapper">
-        <div style="position: absolute; left: 10px; top: 10px; width:200px; height:100px; background-color: yellow;">
-            <label class="font-weight-bold" for="submitText">Search in visualisation:</label>
-        </div>
-        <div
-            style="position: absolute; z-index: 1; left: 50px; top: 20px; width:100px; height:20px; background-color: green;">
-            <form id="submitText">
-                <input type="text" id="inputText" name="inputText">
-                <button type="submit" id="inputBtn" name="input" value="search"
-                    class="btn btn-outline-success fas fa-search" onclick="return submitForm(this)">Search
-                </button>
-            </form>
-        </div>
-    </div> -->
 
 <div class="container-fluid">
     <div class="row">
@@ -124,11 +95,6 @@
             <input type="button" id="download" class="btn btn-outline-dark" value="Download Visualisation">
             <p id="filterMessage"></p>
         </div>
-        <div id="viewRawWrapper">
-            <!-- todo: the popover is not working.. -->
-            <input type="button" id="view_raw" class="btn btn-outline-dark" value="View raw SVG" data-toggle="popover" data-trigger="hover" data-placement="top" data-content="If the visualisation is blank try this">
-            <!-- <p id="filterMessage"></p> -->
-        </div>
 
     </div>
 </div>
@@ -153,11 +119,6 @@
 
         if (!loaded) {
             var dotStr = dot;
-            //moved below test to button.. todo: remove
-            // let search = "role";
-            // let dotStr = dot.replace(search, "\"" + search + "\", color=red"); //test works
-
-            // console.log("got dot: ", dotStr);
 
             // Asynchronous call to layout
             hpccWasm.graphviz.layout(dotStr, "svg", "dot").then(svg => {
@@ -183,10 +144,14 @@
                         }
                     }
                     console.log("width: " + canvas.width + ", height: " + canvas.height);
-                    // context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y-img1.height/10, 800, 800);
-                    context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, img1.width * scale, img1.height * scale);
+                    if(canvas.width < 10000){
+                        context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, img1.width * scale, img1.height * scale);
+                    } else{
+                        canvas.width = 1500;
+                        canvas.height = 500;
+                        console.log("widthNew: " + canvas.width + ", heightNew: " + canvas.height);
+                        context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, 1500*scale, 500*scale);                    }
                     // DOMURL.revokeObjectURL(url); //no we need url for updates to canvas
-
                 }
                 img1.src = url;
                 loaded = true;
@@ -194,8 +159,11 @@
 
             });
         } else {
-            // context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, 200, 200);
-            context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, img1.width * scale, img1.height * scale);
+            if(img1.width < 10000){
+                context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, img1.width * scale, img1.height * scale);
+            } else{
+                context.drawImage(img1, 0, 0, img1.width, img1.height, translatePos.x, translatePos.y, 1500*scale, 500*scale);
+            }
         }
     }
 
@@ -306,109 +274,10 @@
                     document.body.appendChild(a);
                     a.click();
                 }
-                //open svg in new tab test: 
-                // let b = document.createElement('b');
-                // b.href=url2;
-                // console.log("url2: " + url2);
-                // // window.open(url2, '_blank');
-                // location.replace(url2);
-                //todo: below required for download! commented only for test
                 saveImage("{{ sheet }}");
                 DOMURL.revokeObjectURL(url2);
             });
         });
-
-        document.getElementById("view_raw").addEventListener("click", function () {
-            // console.log("download clicked");
-            var dotStr2 = dots[current_dot];
-
-            // Asynchronous call to layout
-            hpccWasm.graphviz.layout(dotStr2, "svg", "dot").then(svg2 => {
-                var data2 = svg2;
-                var DOMURL2 = window.URL || window.webkitURL || window;
-
-                var svg2 = new Blob([data2], { type: 'image/svg+xml' });
-                var url2 = DOMURL2.createObjectURL(svg2);
-                let saveImage = (img_name) => {
-                    let a = document.createElement('a');
-                    a.href = url2;
-                    // a.href = pic.toDataURL("image/png"); //todo: should we convert to png image? needs work..
-                    // a.download = img_name; //this saves as .xlsx in chrome
-                    //change to .svg:
-                    a.download = img_name.slice(0, -5) + ".svg";
-                    document.body.appendChild(a);
-                    a.click();
-                }
-                //open svg in new tab test: 
-                // let b = document.createElement('b');
-                // b.href=url2;
-                console.log("url2: " + url2);
-                // window.open(url2, '_blank');
-                location.replace(url2);
-                //todo: below required for download! commented only for test
-                // saveImage("{{ sheet }}");
-                // DOMURL.revokeObjectURL(url2);
-            });
-        });
-
-////////////////////////////////////////test open svg in new tab: ///////////////////////////////////////
-     /*   
-function sendVisualisationRequest(filter, sendType) {
-            var indices = [];
-            if(sendType == "select"){
-                var selectedData = table.getSelectedData();
-                var selectedRows = table.getSelectedRows();
-            } else{
-                var selectedRows = table.getRows();
-            }
-            
-            for (r in selectedRows) {
-                indices.push(selectedRows[r].getIndex());
-            }
-            indices.sort(function (a, b) { return a - b });
-            // console.log(indices);
-
-                window.open('', 'VisualisationWindow');
-
-                var form = document.createElement("form");
-                form.setAttribute("method", "post");
-                form.setAttribute("action", "/openVisualise");
-                form.setAttribute("target", 'VisualisationWindow');
-                var input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = "sheet";
-                input.value = "{{spreadsheet_name}}";
-                form.appendChild(input);
-                var input2 = document.createElement('input');
-                input2.type = 'hidden';
-                input2.name = "repo";
-                input2.value = "{{repo_name}}";
-                form.appendChild(input2);
-                var input4 = document.createElement('input');
-                input4.type = 'hidden';
-                input4.name = "table";
-                input4.value = JSON.stringify(table.getData());
-                form.appendChild(input4);
-                var input5 = document.createElement('input');
-                input5.type = 'hidden';
-                input5.name = "indices";
-                input5.value = JSON.stringify(indices);
-                form.appendChild(input5);
-                var input6 = document.createElement('input');
-                input6.type = 'hidden';
-                input6.name = "filter";
-                //test:
-                // var filter = ["External", "Proposed"];
-                // var filter = ""; //ok we can set this here!
-                input6.value = JSON.stringify(filter);
-                form.appendChild(input6);
-                document.body.appendChild(form);
-                form.target = 'VisualisationWindow';
-                form.submit();
-                document.body.removeChild(form);
-            }
-            */
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
         {% if dotstr_list %}
@@ -472,7 +341,6 @@ function sendVisualisationRequest(filter, sendType) {
         document.getElementById("inputBtn").addEventListener("click", function () {
             event.preventDefault();
             // console.log("search button clicked");
-            // alert("search button clicked");
             var inputTextVal = $('#input-text');
             //replace inputTextVal " " with newline:
             var inputTextVal2 = inputTextVal.val().replace(/ /g, "\n");
