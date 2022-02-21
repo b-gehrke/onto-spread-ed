@@ -44,6 +44,7 @@
         <div class="col-md-12">
             <div class="col-8">
                 <h2 id="s-name"> API VISUALISATIONS: {{sheet}} </h2>
+                <p id="error-message"></p>
             </div class="col-4">
 
             {% if dotstr_list %}
@@ -118,7 +119,13 @@
 
         if (!loaded) {
             var dotStr = dot;
-
+            console.log(dotStr.replace(/\s+/g, '').trim());
+            //check for empty digigraph: 
+            if(dotStr.replace(/\s+/g, '').trim() == "digraph{}"){
+                console.log("Empty digigraph found");
+                $("#error-message").text("No data for graph visualisation - try again with different ID's");
+                $("#error-message").css('background-color', 'red');
+            }
             // Asynchronous call to layout
             hpccWasm.graphviz.layout(dotStr, "svg", "dot").then(svg => {
                 var data = svg;
